@@ -4,62 +4,181 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Select a Room</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #eef2ff, #f8fafc);
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px;
+      background: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
+    }
+
+    .header button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    .rooms {
+      padding: 20px;
+      flex-grow: 1;
+    }
+
+    .rooms h3 {
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .room-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .room-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .room-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .room-card img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+    }
+
+    .room-card p {
+      margin: 0;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .footer {
+      padding: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .footer button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0ea5e9;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .footer button:hover {
+      background-color: #0284c7;
+    }
+
+    .selected {
+      border: 2px solid #0ea5e9;
+    }
+  </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-
-  <!-- Header -->
-  <header class="sticky top-0 bg-slate-50 shadow px-4 py-3 flex items-center">
-    <button onclick="window.location.href='../login/index.html'" 
-            class="material-symbols-outlined mr-2">arrow_back_ios_new</button>
-    <h1 class="flex-1 text-center text-lg font-bold">Select a Room</h1>
-  </header>
-
-  <!-- Main content -->
-  <main class="p-4">
-    <h2 class="text-2xl font-bold mb-4">Available Rooms</h2>
-
-    <div class="grid grid-cols-2 gap-4">
-      <!-- Room 1 -->
-      <div class="group cursor-pointer">
-        <div class="relative overflow-hidden rounded-lg">
-          <div class="h-40 w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-               style='background-image: url("https://via.placeholder.com/300x200?text=Room+1");'>
-          </div>
-          <div class="absolute inset-0 bg-black/20"></div>
-          <div class="absolute bottom-2 right-2 rounded-full bg-slate-50/80 px-2 py-0.5 text-xs font-semibold text-slate-900">
-            Room 1
-          </div>
-        </div>
-        <p class="mt-2 text-sm font-medium text-[#0d171b]">Capacity: 4</p>
-      </div>
-
-      <!-- Room 2 -->
-      <div class="group cursor-pointer">
-        <div class="relative overflow-hidden rounded-lg">
-          <div class="h-40 w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
-               style='background-image: url("https://via.placeholder.com/300x200?text=Room+2");'>
-          </div>
-          <div class="absolute inset-0 bg-black/20"></div>
-          <div class="absolute bottom-2 right-2 rounded-full bg-slate-50/80 px-2 py-0.5 text-xs font-semibold text-slate-900">
-            Room 2
-          </div>
-        </div>
-        <p class="mt-2 text-sm font-medium text-[#0d171b]">Capacity: 6</p>
-      </div>
-
-      <!-- เพิ่มห้องอื่น ๆ ได้ตามต้องการ -->
+<body>
+  <div class="container">
+    <div class="header">
+      <button onclick="history.back()">←</button>
+      <h2>Select a room</h2>
     </div>
-  </main>
 
-  <!-- Footer -->
-  <footer class="sticky bottom-0 bg-slate-50 p-4">
-    <button class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
-      Next
-    </button>
-  </footer>
+    <div class="rooms">
+      <h3>Available rooms</h3>
+      <div class="room-grid">
+        <div class="room-card" onclick="selectRoom(this)">
+          <img src="https://picsum.photos/id/1018/200/100" alt="Cozy Studio">
+          <p>Cozy Studio</p>
+        </div>
+        <div class="room-card" onclick="selectRoom(this)">
+          <img src="https://picsum.photos/id/1015/200/100" alt="Modern Loft">
+          <p>Modern Loft</p>
+        </div>
+        <div class="room-card" onclick="selectRoom(this)">
+          <img src="https://picsum.photos/id/1011/200/100" alt="Spacious Suite">
+          <p>Spacious Suite</p>
+        </div>
+        <div class="room-card" onclick="selectRoom(this)">
+          <img src="https://picsum.photos/id/1019/200/100" alt="Penthouse View">
+          <p>Penthouse View</p>
+        </div>
+        <div class="room-card" onclick="selectRoom(this)">
+          <img src="https://picsum.photos/id/102/200/100" alt="Garden Retreat">
+          <p>Garden Retreat</p>
+        </div>
+        <div class="room-card" onclick="selectRoom(this)">
+          <img src="https://picsum.photos/id/1031/200/100" alt="Cityscape Loft">
+          <p>Cityscape Loft</p>
+        </div>
+      </div>
+    </div>
 
-  <script src="js/script.js"></script>
+    <div class="footer">
+      <button onclick="continueBooking()">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    let selectedRoom = null;
+
+    function selectRoom(card) {
+      if (selectedRoom) {
+        selectedRoom.classList.remove("selected");
+      }
+      card.classList.add("selected");
+      selectedRoom = card;
+    }
+
+    function continueBooking() {
+      if (!selectedRoom) {
+        alert("⚠️ กรุณาเลือกห้องก่อน");
+        return;
+      }
+      const roomName = selectedRoom.querySelector("p").textContent;
+      alert("✅ คุณเลือก: " + roomName);
+      // สามารถเปลี่ยนไปหน้า confirm.html ได้
+      // window.location.href = "confirm.html";
+    }
+  </script>
 </body>
 </html>
