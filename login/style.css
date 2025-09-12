@@ -1,9 +1,0 @@
-/* style.css */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* เพิ่มสีหลักสำหรับโปรเจกต์ */
-:root {
-  --primary-color: #1193d4;
-}

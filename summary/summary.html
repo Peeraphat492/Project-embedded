@@ -1,70 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Booking Summary</title>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Summary</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f8fafc;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px;
+      background: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
+    }
+
+    .header button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    .reservation {
+      padding: 20px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .reservation h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .room-card {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .room-card img {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-right: 15px;
+    }
+
+    .room-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .room-info strong {
+      font-size: 15px;
+    }
+
+    .room-info span {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .details {
+      padding: 20px;
+    }
+
+    .details h3 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .detail-item {
+      margin-bottom: 15px;
+    }
+
+    .detail-item label {
+      display: block;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 3px;
+    }
+
+    .detail-item span {
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .footer {
+      padding: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .footer button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0ea5e9;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .footer button:hover {
+      background-color: #0284c7;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      border-top: 1px solid #ddd;
+      background: #fff;
+    }
+
+    .bottom-nav div {
+      text-align: center;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+    }
+
+    .bottom-nav .active {
+      font-weight: bold;
+      color: #0ea5e9;
+    }
+  </style>
 </head>
-<body class="bg-slate-50">
-
-<div class="relative flex size-full min-h-screen flex-col">
-
-  <!-- Header -->
-  <header class="sticky top-0 z-10 bg-slate-50/80 backdrop-blur-sm">
-    <div class="flex items-center p-4">
-      <button onclick="window.history.back()" class="flex size-10 items-center justify-center rounded-full text-slate-700 hover:bg-slate-200">
-        <span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
-      </button>
-      <h1 class="flex-1 text-center text-lg font-bold text-slate-900 pr-10">Booking Summary</h1>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <button onclick="history.back()">←</button>
+      <h2>Booking Summary</h2>
     </div>
-  </header>
 
-  <!-- Main -->
-  <main class="flex-1 px-6 py-8">
-    <div class="space-y-8">
-      <div class="space-y-2">
-        <h2 class="text-sm font-medium text-slate-500">Project Name</h2>
-        <p class="text-lg font-semibold text-slate-800">The Grand Residences</p>
-      </div>
-      <div class="space-y-2">
-        <h2 class="text-sm font-medium text-slate-500">User</h2>
-        <p class="text-lg font-semibold text-slate-800">Ethan Harper</p>
-      </div>
-      <div class="space-y-2">
-        <h2 class="text-sm font-medium text-slate-500">Room</h2>
-        <p class="text-lg font-semibold text-slate-800">Conference Room</p>
-      </div>
-      <div class="space-y-2">
-        <h2 class="text-sm font-medium text-slate-500">Reserved Time</h2>
-        <p class="text-lg font-semibold text-slate-800">2024-07-20, 10:00 AM - 12:00 PM</p>
-      </div>
-      <div class="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-        <h2 class="text-sm font-medium text-slate-500">Password for Room Access</h2>
-        <div class="mt-4 flex items-center justify-center gap-3">
-          <p id="room-password" class="text-4xl font-bold tracking-widest text-slate-900">123456</p>
-          <button id="copy-password" class="flex size-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100">
-            <span class="material-symbols-outlined text-xl">content_copy</span>
-          </button>
+    <!-- Reservation Info -->
+    <div class="reservation">
+      <h3>Smart Room Reservation</h3>
+      <div class="room-card">
+        <img src="https://i.imgur.com/Qb3l4ZB.jpg" alt="Room">
+        <div class="room-info">
+          <strong>Condo Unit</strong>
+          <span>Room 201</span>
         </div>
       </div>
     </div>
-  </main>
 
-  <!-- Footer -->
-  <footer class="sticky bottom-0 bg-slate-50/80 backdrop-blur-sm p-4">
-    <button class="flex w-full cursor-pointer items-center justify-center rounded-xl h-14 px-5 bg-[#1193d4] text-slate-50 text-lg font-bold shadow-lg shadow-[#1193d4]/30">
-      <span>Edit Booking</span>
-    </button>
-  </footer>
+    <!-- Booking Details -->
+    <div class="details">
+      <h3>Booking Details</h3>
+      <div class="detail-item">
+        <label>Name</label>
+        <span id="name">Ethan Carter</span>
+      </div>
+      <div class="detail-item">
+        <label>Booking Time</label>
+        <span id="time">July 20, 2024, 2:00 PM</span>
+      </div>
+      <div class="detail-item">
+        <label>Access Code</label>
+        <span id="code">123456</span>
+      </div>
+    </div>
 
-</div>
+    <!-- Footer -->
+    <div class="footer">
+      <button onclick="editBooking()">Back to Edit</button>
+    </div>
 
-<script src="js/script.js"></script>
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div>🏠<br>Home</div>
+      <div class="active">📑<br>My Bookings</div>
+      <div>👤<br>Profile</div>
+    </div>
+  </div>
+
+  <script>
+    function editBooking() {
+      alert("🔄 กลับไปแก้ไขการจอง");
+      // เช่นกลับไปหน้าเลือกห้อง
+      // window.location.href = "room.html";
+    }
+  </script>
 </body>
 </html>
