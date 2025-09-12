@@ -1,0 +1,12 @@
+body {
+  font-family: 'Manrope', sans-serif;
+}
+
+.time-slot {
+  text-center py-4 px-2 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold transition-colors duration-200;
+}
+
+.time-slot.selected {
+  background-color: #1193d4;
+  color: white;
+}

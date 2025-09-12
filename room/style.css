@@ -1,0 +1,8 @@
+/* style.css ของหน้า Rooms */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+:root {
+  --primary-color: #1193d4;
+}
