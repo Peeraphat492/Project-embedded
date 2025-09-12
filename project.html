@@ -1,12 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My First Page</title>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Smart Room Reservation - Login</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+    :root {
+      --primary-color: #1193d4;
+    }
+    body {
+      font-family: 'Manrope', sans-serif;
+    }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+</style>
 </head>
-<body>
-  <h1>Hello, HTML!</h1>
-  <p>ยินดีต้อนรับสู่หน้าเว็บของฉัน</p>
-</body>
-</html>
+<body class="bg-gray-50 dark:bg-gray-900">
+<div class="flex flex-col items-center justify-center min-h-screen px-4">
+<div class="w-full max-w-sm mx-auto">
+<div class="text-center mb-12">
+<h1 class="text-3xl font-bold text-gray-800 dark:text-white">Smart Room Reservation</h1>
+</div>
+<div class="space-y-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">person</span>
+<input class="form-input w-full pl-12 pr-4 py-4 text-base bg-gray-100 dark:bg-gray-800 border-2 border-transparent focus:border-[var(--primary-color)] focus:ring-0 rounded-xl placeholder-gray-500 dark:placeholder-gray-400 text-gray-800 dark:text-white transition-all duration-300" placeholder="Username" type="text"/>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">lock</span>
+<input class="form-input w-full pl-12 pr-4 py-4 text-base bg-gray-100 dark:bg-gray-800 border-2 border-transparent focus:border-[var(--primary-color)] focus:ring-0 rounded-xl placeholder-gray-500 dark:placeholder-gray-400 text-gray-800 dark:text-white transition-all duration-300" placeholder="Password" type="password"/>
+</div>
+</div>
+<div class="mt-8">
+<button class="w-full bg-[var(--primary-color)] hover:bg-opacity-90 text-white font-bold py-4 px-4 rounded-xl text-lg shadow-md hover:shadow-lg transition-all duration-300">
+          Login
+</button>
+</div>
+<div class="text-center mt-6">
+<a class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-[var(--primary-color)] dark:hover:text-[var(--primary-color)] transition-colors duration-300" href="#">
+          Forgot password?
+</a>
+</div>
+</div>
+</div>
+ 
+</body></html>
