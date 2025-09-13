@@ -111,7 +111,7 @@
     }
 
     .selected {
-      border: 2px solid #0ea4e9df;
+      border: 2px solid #0ea5e9;
     }
   </style>
 </head>
@@ -174,14 +174,8 @@
         alert("⚠️ กรุณาเลือกห้องก่อน");
         return;
       }
-      // เก็บข้อมูลห้องที่เลือก
-      const img = selectedRoom.querySelector("img").src;
-      const name = selectedRoom.querySelector("strong") ? selectedRoom.querySelector("strong").textContent : "";
-      const room = selectedRoom.querySelector("span") ? selectedRoom.querySelector("span").textContent : "";
-      localStorage.setItem("roomImg", img);
-      localStorage.setItem("roomName", name);
-      localStorage.setItem("roomNumber", room);
-
+      const roomName = selectedRoom.querySelector("p").textContent;
+      alert("✅ คุณเลือก: " + roomName);
       window.location.href = "time.html";
     }
   </script>
