@@ -174,8 +174,14 @@
         alert("⚠️ กรุณาเลือกห้องก่อน");
         return;
       }
-      const roomName = selectedRoom.querySelector("p").textContent;
-      alert("✅ คุณเลือก: " + roomName);
+      // เก็บข้อมูลห้องที่เลือก
+      const img = selectedRoom.querySelector("img").src;
+      const name = selectedRoom.querySelector("strong") ? selectedRoom.querySelector("strong").textContent : "";
+      const room = selectedRoom.querySelector("span") ? selectedRoom.querySelector("span").textContent : "";
+      localStorage.setItem("roomImg", img);
+      localStorage.setItem("roomName", name);
+      localStorage.setItem("roomNumber", room);
+
       window.location.href = "time.html";
     }
   </script>
