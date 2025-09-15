@@ -16,7 +16,8 @@
     .container {
       width: 100%;
       max-width: 450px;
-      background: #fff;background: linear-gradient(to bottom, #eef2ff, #f8fafc); min-height: 100vh;
+      background: linear-gradient(to bottom, #eef2ff, #f8fafc);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
@@ -29,12 +30,27 @@
       background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
     }
 
+   
     .header button {
-      background: none;
-      border: none;
+      background-color: transparent;   /* ไม่มีพื้นหลัง */
+      color: #0284c7;                 /* สีลูกศร */
+      border: 2px solid #0284c7;      /* วงกลมเป็นขอบ */
       font-size: 20px;
       cursor: pointer;
       margin-right: 10px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;             /* ทำให้เป็นวงกลม */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, transform 0.2s, color 0.2s;
+    }
+
+    .header button:hover {
+      border-color: #0285c7b4;          /* เปลี่ยนสีขอบเมื่อ hover */
+      color: #0285c7b4;                 /* เปลี่ยนสีลูกศรเมื่อ hover */
+      transform: scale(1.1);          /* ขยายเล็กน้อย */
     }
 
     .header h2 {
@@ -89,6 +105,10 @@
       text-align: center;
     }
 
+    .selected {
+      border: 2px solid #0ea5e9;
+    }
+
     .footer {
       padding: 20px;
       border-top: 1px solid #ddd;
@@ -104,14 +124,12 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
     }
 
     .footer button:hover {
       background-color: #0284c7;
-    }
-
-    .selected {
-      border: 2px solid #0ea5e9;
+      transform: scale(1.02);
     }
   </style>
 </head>
@@ -123,10 +141,10 @@
     </div>
 
     <div class="rooms">
-      <h3>Available rooms</h3>
+      <h3>Choose a room</h3>
       <div class="room-grid">
         <div class="room-card" onclick="selectRoom(this)">
-          <img src="https://www.infinitydesign.in.th/wp-content/uploads/2020/02/Ananda-IDEO-SW-35.jpg" alt="Meeting Room1">
+          <img src="https://www.homenayoo.com/wp-content/uploads/2018/03/1091.jpg" alt="Meeting Room1">
           <p>Meeting Room1</p>
         </div>
         <div class="room-card" onclick="selectRoom(this)">
@@ -145,7 +163,6 @@
           <img src="https://prop2morrow.com/wp-content/uploads/2021/12/2021-12-10_17-14-58-assetwise.jpg" alt="Game Room">
           <p>Game Room</p>
         </div>
-        
         <div class="room-card" onclick="selectRoom(this)">
           <img src="https://iauna.net/wp-content/uploads/2021/05/cs.01.png" alt="Facial Sauna Room">
           <p>Facial Sauna Room</p>
@@ -174,14 +191,8 @@
         alert("⚠️ กรุณาเลือกห้องก่อน");
         return;
       }
-      // เก็บข้อมูลห้องที่เลือก
-      const img = selectedRoom.querySelector("img").src;
-      const name = selectedRoom.querySelector("strong") ? selectedRoom.querySelector("strong").textContent : "";
-      const room = selectedRoom.querySelector("span") ? selectedRoom.querySelector("span").textContent : "";
-      localStorage.setItem("roomImg", img);
-      localStorage.setItem("roomName", name);
-      localStorage.setItem("roomNumber", room);
-
+      const roomName = selectedRoom.querySelector("p").textContent;
+      alert("✅ คุณเลือก: " + roomName);
       window.location.href = "time.html";
     }
   </script>
