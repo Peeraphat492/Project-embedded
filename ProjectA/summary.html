@@ -20,8 +20,10 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      padding-bottom: 80px; 
     }
 
+    /* Header */
     .header {
       display: flex;
       align-items: center;
@@ -30,12 +32,28 @@
       background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
     }
 
+    /* ปุ่มลูกศร ← เป็นวงกลมขอบโปร่ง */
     .header button {
-      background: none;
-      border: none;
+      background-color: transparent;   /* ไม่มีพื้นหลัง */
+      color: #0ea5e9;                 /* สีลูกศร */
+      border: 2px solid #0ea5e9;      /* ขอบวงกลม */
       font-size: 20px;
       cursor: pointer;
       margin-right: 10px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;             /* ทำให้เป็นวงกลม */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, transform 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+
+    .header button:hover {
+      border-color: #0284c7;          /* เปลี่ยนสีขอบเมื่อ hover */
+      color: #0284c7;                 /* เปลี่ยนสีลูกศรเมื่อ hover */
+      transform: scale(1.1);          /* ขยายเล็กน้อย */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* เพิ่มเงา */
     }
 
     .header h2 {
@@ -130,19 +148,28 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
     }
 
     .footer button:hover {
       background-color: #0284c7;
+      transform: scale(1.02);
     }
 
     /* Bottom Navigation */
     .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 450px;
       display: flex;
       justify-content: space-around;
       padding: 12px 0;
       border-top: 1px solid #ddd;
       background: #fff;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
     }
 
     .bottom-nav div {
@@ -150,9 +177,12 @@
       font-size: 13px;
       color: #555;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    .bottom-nav .active {
+    .bottom-nav div.active {
       font-weight: bold;
       color: #0ea5e9;
     }
@@ -199,12 +229,18 @@
     <div class="footer">
       <button onclick="editBooking()">Back to Edit</button>
     </div>
+  </div>
 
-    <!-- Bottom Nav -->
-    <div class="bottom-nav">
-      <div>🏠<br>Home</div>
-      <div class="active">📑<br>My Bookings</div>
-      <div>👤<br>Profile</div>
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div>
+      🏠<br>Home
+    </div>
+    <div class="active">
+      📑<br>My Bookings
+    </div>
+    <div>
+      👤<br>Profile
     </div>
   </div>
 
@@ -213,7 +249,6 @@
       window.location.href = "time.html";
     }
 
-    // ดึงข้อมูลห้องที่เลือกจาก localStorage มาแสดง
     window.addEventListener('DOMContentLoaded', function() {
       const img = localStorage.getItem("roomImg");
       const name = localStorage.getItem("roomName");

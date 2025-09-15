@@ -22,6 +22,7 @@
       flex-direction: column;
     }
 
+    /* Header */
     .header {
       display: flex;
       align-items: center;
@@ -30,12 +31,27 @@
       background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
     }
 
+    
     .header button {
-      background: none;
-      border: none;
+      background-color: transparent;   /* ไม่มีพื้นหลัง */
+      color: #0284c7;                 /* สีลูกศร */
+      border: 2px solid #0284c7;      /* ขอบวงกลม */
       font-size: 20px;
       cursor: pointer;
       margin-right: 10px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;             /* ทำให้เป็นวงกลม */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, transform 0.2s, color 0.2s;
+    }
+
+    .header button:hover {
+      border-color: #0285c7b4;        /* เปลี่ยนสีขอบเมื่อ hover */
+      color: #0285c7b4;               /* เปลี่ยนสีลูกศรเมื่อ hover */
+      transform: scale(1.1);          /* ขยายเล็กน้อย */
     }
 
     .header h2 {
@@ -46,6 +62,7 @@
       text-align: center;
     }
 
+    /* Times Grid */
     .times {
       padding: 20px;
       flex-grow: 1;
@@ -84,6 +101,7 @@
       font-weight: bold;
     }
 
+    /* Footer */
     .footer {
       padding: 20px;
       border-top: 1px solid #ddd;
@@ -99,20 +117,24 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
     }
 
     .footer button:hover {
       background-color: #0284c7;
+      transform: scale(1.02);
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Header -->
     <div class="header">
       <button onclick="history.back()">←</button>
       <h2>Select Time</h2>
     </div>
 
+    <!-- Time Selection -->
     <div class="times">
       <h3>Choose Time</h3>
       <div class="time-grid">
@@ -131,6 +153,7 @@
       </div>
     </div>
 
+    <!-- Footer -->
     <div class="footer">
       <button onclick="continueBooking()">Continue</button>
     </div>

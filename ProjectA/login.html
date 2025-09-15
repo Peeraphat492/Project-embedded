@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Room Reservation - Login</title>
+  <!-- เพิ่ม Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <style>
-    
     * {
       margin: 0;
       padding: 0;
@@ -38,19 +40,32 @@
       color: #000;
     }
 
-    .login-container input {
-      width: 100%;
-      padding: 12px;
+    .input-box {
+      position: relative;
       margin-bottom: 18px;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 12px 12px 12px 40px; /* เว้นที่ด้านซ้ายไว้สำหรับไอคอน */
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 15px;
       outline: none;
     }
 
-    .login-container input:focus {
+    .input-box input:focus {
       border-color: #0ea5e9;
       box-shadow: 0 0 5px #0ea5e9;
+    }
+
+    .input-box i {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      color: #66666687;
+      font-size: 16px;
     }
 
     .login-container button {
@@ -74,8 +89,14 @@
   <div class="login-container">
     <h1>SMART ROOM<br>RESERVATION</h1>
     <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required>
-      <input type="password" id="password" placeholder="Password" required>
+      <div class="input-box">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" id="username" placeholder="Username" required>
+      </div>
+      <div class="input-box">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="password" placeholder="Password" required>
+      </div>
       <button type="submit">Login</button>
     </form>
   </div>
@@ -92,7 +113,7 @@
         return;
       }
 
-      // ตัวอย่างการตรวจสอบ
+      
       if (username === "admin" && password === "1234") {
         window.location.href = "rooms.html"; // ไปหน้าเลือกห้องทันที
       } else {
