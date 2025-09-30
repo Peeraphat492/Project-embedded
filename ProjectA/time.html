@@ -31,7 +31,6 @@
       background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
     }
 
-    
     .header button {
       background-color: transparent;   /* ไม่มีพื้นหลัง */
       color: #0284c7;                 /* สีลูกศร */
@@ -130,7 +129,7 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <button onclick="history.back()">←</button>
+      <button onclick="window.location.href='rooms.html'">←</button>
       <h2>Select Time</h2>
     </div>
 
@@ -168,6 +167,16 @@
       }
       slot.classList.add("selected");
       selectedTime = slot;
+
+      // บันทึกเวลาที่เลือกใน Local Storage
+      const now = new Date();
+      const day = now.getDate();
+      const month = now.toLocaleString('en-US', { month: 'long' });
+      const year = now.getFullYear();
+
+      // สร้างรูปแบบวันที่และเวลาที่เลือก
+      const formattedDateTime = `${day} ${month} ${year}, ${slot.textContent}`;
+      localStorage.setItem("bookingDateTime", formattedDateTime);
     }
 
     function continueBooking() {
@@ -175,9 +184,7 @@
         alert("⚠️ กรุณาเลือกเวลาที่ต้องการ");
         return;
       }
-      const timeText = selectedTime.textContent;
-      alert("✅ คุณเลือกเวลา: " + timeText);
-      window.location.href = "summary.html";
+      window.location.href = "summary.html"; // เปลี่ยนหน้าไปยัง summary.html
     }
   </script>
 </body>
