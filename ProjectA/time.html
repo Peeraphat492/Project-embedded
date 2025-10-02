@@ -100,6 +100,11 @@
       font-weight: bold;
     }
 
+    .time-slot:active {
+      transform: scale(0.95); /* ลดขนาดเล็กลงเล็กน้อยเมื่อคลิก */
+      transition: transform 0.1s ease-in-out; /* เพิ่มการเปลี่ยนแปลงแบบ smooth */
+    }
+
     /* Footer */
     .footer {
       padding: 20px;
@@ -137,18 +142,22 @@
     <div class="times">
       <h3>Choose Time</h3>
       <div class="time-grid">
-        <div class="time-slot" onclick="selectTime(this)">09:00 - 11:00</div>
-        <div class="time-slot" onclick="selectTime(this)">10:00 - 12:00</div>
-        <div class="time-slot" onclick="selectTime(this)">11:00 - 13:00</div>
-        <div class="time-slot" onclick="selectTime(this)">12:00 - 14:00</div>
-        <div class="time-slot" onclick="selectTime(this)">13:00 - 15:00</div>
-        <div class="time-slot" onclick="selectTime(this)">14:00 - 16:00</div>
-        <div class="time-slot" onclick="selectTime(this)">15:00 - 17:00</div>
-        <div class="time-slot" onclick="selectTime(this)">16:00 - 18:00</div>
-        <div class="time-slot" onclick="selectTime(this)">17:00 - 19:00</div>
-        <div class="time-slot" onclick="selectTime(this)">18:00 - 20:00</div>
-        <div class="time-slot" onclick="selectTime(this)">19:00 - 21:00</div>
-        <div class="time-slot" onclick="selectTime(this)">20:00 - 22:00</div>
+        <div class="time-slot" onclick="selectTime(this)">08:00 - 09:00</div>
+        <div class="time-slot" onclick="selectTime(this)">09:00 - 10:00</div>
+        <div class="time-slot" onclick="selectTime(this)">10:00 - 11:00</div>
+        <div class="time-slot" onclick="selectTime(this)">11:00 - 12:00</div>
+        <div class="time-slot" onclick="selectTime(this)">12:00 - 13:00</div>
+        <div class="time-slot" onclick="selectTime(this)">13:00 - 14:00</div>
+        <div class="time-slot" onclick="selectTime(this)">14:00 - 15:00</div>
+        <div class="time-slot" onclick="selectTime(this)">15:00 - 16:00</div>
+        <div class="time-slot" onclick="selectTime(this)">16:00 - 17:00</div>
+        <div class="time-slot" onclick="selectTime(this)">17:00 - 18:00</div>
+        <div class="time-slot" onclick="selectTime(this)">18:00 - 19:00</div>
+        <div class="time-slot" onclick="selectTime(this)">19:00 - 20:00</div>
+        <div class="time-slot" onclick="selectTime(this)">20:00 - 21:00</div>
+        <div class="time-slot" onclick="selectTime(this)">21:00 - 22:00</div>
+        <div class="time-slot" onclick="selectTime(this)">22:00 - 23:00</div>
+        <div class="time-slot" onclick="selectTime(this)">23:00 - 00:00</div>
       </div>
     </div>
 
