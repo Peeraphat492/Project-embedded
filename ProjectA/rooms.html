@@ -191,12 +191,10 @@
         alert("⚠️ กรุณาเลือกห้องก่อน");
         return;
       }
-
-      // ดึงข้อมูลชื่อห้องและ URL รูปภาพ
       const roomName = selectedRoom.querySelector("p").textContent;
       const roomImg = selectedRoom.querySelector("img").src;
 
-      // เก็บข้อมูลใน Local Storage
+      // บันทึกข้อมูลห้องที่เลือกใน Local Storage
       localStorage.setItem("roomName", roomName);
       localStorage.setItem("roomImg", roomImg);
 
