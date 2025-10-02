@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MANUAL</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #ffffff; /* พื้นหลังด้านนอกเป็นสีขาว */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh; /* ทำให้กรอบอยู่ตรงกลาง */
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px; /* ขนาดเท่ากับหน้าอื่น */
+      background: linear-gradient(to bottom, #eef2ff, #f8fafc); /* ไล่สีด้านใน */
+      min-height: 100vh; /* กำหนดความสูงของกรอบ */
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* เพิ่มเงาให้กรอบดูโดดเด่น */
+      border-radius: 10px; /* เพิ่มความโค้งมนให้กรอบ */
+      overflow: hidden; /* ป้องกันการล้นของเนื้อหา */
+    }
+
+    /* Header */
+    .header {
+      width: 100%;
+      max-width: 450px; /* ขนาดกรอบเท่ากับหน้าอื่น */
+      text-align: center;
+      padding: 20px 0; /* เพิ่ม padding เพื่อให้กรอบใหญ่ขึ้น */
+      background: linear-gradient(to bottom, #e0e7ff, #f8fafc); /* ไล่สีเหมือนหน้าอื่น */
+      border-bottom: 1px solid #ddd;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* เพิ่มเงาให้เหมือนหน้าอื่น */
+      position: relative; /* ใช้สำหรับวางตำแหน่งลูกศรย้อนกลับ */
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 20px; /* เพิ่มขนาดตัวอักษรให้ใหญ่ขึ้น */
+      font-weight: bold;
+      color: #333;
+    }
+
+    .header button {
+      position: absolute;
+      left: 15px; /* วางตำแหน่งลูกศรด้านซ้าย */
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: transparent; /* ไม่มีพื้นหลัง */
+      color: #0284c7; /* สีลูกศร */
+      border: 2px solid #0284c7; /* ขอบวงกลม */
+      font-size: 20px;
+      cursor: pointer;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%; /* ทำให้เป็นวงกลม */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, transform 0.2s, color 0.2s;
+      outline: none; /* ป้องกันเส้นขอบเมื่อกด */
+    }
+
+    .header button:active {
+      transform: translateY(-50%) scale(0.95); /* ลดขนาดเล็กน้อยเมื่อกด */
+    }
+
+    .header button:hover {
+      border-color: #0285c7b4; /* เปลี่ยนสีขอบเมื่อ hover */
+      color: #0285c7b4; /* เปลี่ยนสีลูกศรเมื่อ hover */
+      transform: translateY(-50%) scale(1.1); /* ขยายเล็กน้อยเมื่อ hover */
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      flex-direction: column; /* จัดเรียงปุ่มในแนวตั้ง */
+      align-items: center; /* จัดปุ่มให้อยู่ตรงกลาง */
+      justify-content: center; /* จัดปุ่มให้อยู่ตรงกลางในแนวตั้ง */
+      gap: 15px; /* เพิ่มระยะห่างระหว่างปุ่ม */
+      flex-grow: 1; /* ทำให้ footer ขยายเต็มพื้นที่ที่เหลือ */
+      margin-top: -50px; /* ขยับขึ้นด้านบนเล็กน้อย */
+      padding: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .footer button {
+      width: 100%;
+      padding: 12px; /* ขนาดปุ่มเท่ากับหน้าอื่น */
+      border: none;
+      border-radius: 8px; /* ขอบโค้งมนเหมือนหน้าอื่น */
+      background-color: #0ea5e9;
+      color: white;
+      font-size: 16px; /* ขนาดตัวอักษรเท่ากับหน้าอื่น */
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      margin-top: 10px; /* เพิ่มระยะห่างระหว่างปุ่ม */
+    }
+
+    .footer button:hover {
+      background-color: #0284c7;
+      transform: scale(1.02);
+    }
+
+    .footer button:nth-child(2) {
+      background-color: #e11d48; /* สีแดงสำหรับปุ่มปิดไฟ */
+    }
+
+    .footer button:nth-child(2):hover {
+      background-color: #be123c; /* สีแดงเข้มเมื่อ hover */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <button onclick="goBack()">←</button>
+      <h2>MANUAL</h2>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <button onclick="turnOnLight()">เปิดไฟ</button>
+      <button onclick="turnOffLight()">ปิดไฟ</button>
+    </div>
+  </div>
+
+  <script>
+    function turnOnLight() {
+      alert("ไฟถูกเปิดแล้ว!"); // แสดงข้อความเมื่อกดปุ่ม
+      // คุณสามารถเพิ่มโค้ดสำหรับการควบคุมไฟจริง เช่น การส่งคำสั่งไปยังอุปกรณ์
+    }
+
+    function turnOffLight() {
+      alert("ไฟถูกปิดแล้ว!"); // แสดงข้อความเมื่อกดปุ่ม
+      // คุณสามารถเพิ่มโค้ดสำหรับการควบคุมไฟจริง เช่น การส่งคำสั่งไปยังอุปกรณ์
+    }
+
+    function goBack() {
+      window.history.back(); // ย้อนกลับไปยังหน้าก่อนหน้า
+    }
+  </script>
+</body>
+</html>
