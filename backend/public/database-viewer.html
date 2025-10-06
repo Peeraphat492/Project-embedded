@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Viewer - Smart Room Reservation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.online {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.offline {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .data-section {
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        button {
+            background-color: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0284c7;
+        }
+        .refresh-btn {
+            background-color: #28a745;
+        }
+        .refresh-btn:hover {
+            background-color: #218838;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .json-display {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗄️ Database Viewer - Smart Room Reservation</h1>
+    
+    <div class="status" id="serverStatus">
+        Checking server status...
+    </div>
+
+    <!-- Users Section -->
+    <div class="container">
+        <div class="data-section">
+            <h2>👥 Users</h2>
+            <button onclick="loadUsers()" class="refresh-btn">🔄 Refresh Users</button>
+            <div id="usersData"></div>
+        </div>
+    </div>
+
+    <!-- Rooms Section -->
+    <div class="container">
+        <div class="data-section">
+            <h2>🏢 Rooms</h2>
+            <button onclick="loadRooms()" class="refresh-btn">🔄 Refresh Rooms</button>
+            <div id="roomsData"></div>
+        </div>
+    </div>
+
+    <!-- Bookings Section -->
+    <div class="container">
+        <div class="data-section">
+            <h2>📅 All Bookings</h2>
+            <button onclick="loadAllBookings()" class="refresh-btn">🔄 Refresh Bookings</button>
+            <div id="bookingsData"></div>
+        </div>
+    </div>
+
+    <!-- Raw Database Section -->
+    <div class="container">
+        <div class="data-section">
+            <h2>🔍 Database Statistics</h2>
+            <button onclick="loadStats()" class="refresh-btn">📊 Load Stats</button>
+            <div id="statsData"></div>
+        </div>
+    </div>
+
+    <!-- Admin Actions -->
+    <div class="container">
+        <div class="data-section">
+            <h2>⚠️ Admin Actions</h2>
+            <p style="color: #dc3545; font-weight: bold;">Warning: These actions cannot be undone!</p>
+            <button onclick="clearBookings()" style="background-color: #ffc107; color: #000;">🗑️ Clear All Bookings</button>
+            <button onclick="resetDatabase()" style="background-color: #dc3545;">🔄 Reset Database</button>
+            <div id="adminResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Check server status on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkServerStatus();
+            loadAllData();
+        });
+
+        async function checkServerStatus() {
+            const statusEl = document.getElementById('serverStatus');
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    statusEl.className = 'status online';
+                    statusEl.innerHTML = `✅ Server Online - ${data.status} | Database: ${data.database}`;
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (error) {
+                statusEl.className = 'status offline';
+                statusEl.textContent = '❌ Server Offline - Please start backend server';
+            }
+        }
+
+        async function makeRequest(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        function displayTable(data, containerId, columns) {
+            const container = document.getElementById(containerId);
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="error">No data found</p>';
+                return;
+            }
+
+            let html = '<table><thead><tr>';
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            data.forEach(item => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = item[col.toLowerCase()] || item[col] || '';
+                    if (col === 'created_at' && value) {
+                        value = new Date(value).toLocaleString();
+                    }
+                    if (col === 'password' && value) {
+                        value = '****** (encrypted)';
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function displayJSON(data, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="json-display">${JSON.stringify(data, null, 2)}</div>`;
+        }
+
+        async function loadUsers() {
+            try {
+                // Since users endpoint might be protected, we'll show a message
+                const container = document.getElementById('usersData');
+                container.innerHTML = '<p class="success">Users data is protected for security. Default user: admin/1234</p>';
+            } catch (error) {
+                document.getElementById('usersData').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function loadRooms() {
+            try {
+                const data = await makeRequest('/rooms');
+                displayTable(data, 'roomsData', ['ID', 'Name', 'Description', 'Capacity', 'Status', 'Created_at']);
+            } catch (error) {
+                document.getElementById('roomsData').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function loadAllBookings() {
+            try {
+                // This endpoint might not exist, so we'll create a workaround
+                const container = document.getElementById('bookingsData');
+                container.innerHTML = '<p class="success">Bookings are user-specific. Use /api/bookings/my after login to see personal bookings.</p>';
+            } catch (error) {
+                document.getElementById('bookingsData').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const rooms = await makeRequest('/rooms');
+                const health = await makeRequest('/health');
+                
+                const stats = {
+                    total_rooms: rooms.length,
+                    available_rooms: rooms.filter(r => r.status === 'available').length,
+                    server_status: health.status,
+                    database_status: health.database,
+                    timestamp: health.timestamp
+                };
+                
+                displayJSON(stats, 'statsData');
+            } catch (error) {
+                document.getElementById('statsData').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        function loadAllData() {
+            loadUsers();
+            loadRooms();
+            loadAllBookings();
+            loadStats();
+        }
+
+        async function clearBookings() {
+            if (!confirm('Are you sure you want to clear ALL bookings? This cannot be undone!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/clear-bookings`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('adminResult').innerHTML = 
+                        `<div class="success">✅ ${result.message}</div>`;
+                    loadAllData(); // Refresh all data
+                } else {
+                    throw new Error(result.error || 'Failed to clear bookings');
+                }
+            } catch (error) {
+                document.getElementById('adminResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function resetDatabase() {
+            if (!confirm('Are you sure you want to RESET the entire database? This will remove all user data except admin account!')) {
+                return;
+            }
+
+            if (!confirm('This is your FINAL WARNING! All bookings and users (except admin) will be deleted!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/reset-database`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('adminResult').innerHTML = 
+                        `<div class="success">✅ ${result.message}</div>`;
+                    loadAllData(); // Refresh all data
+                } else {
+                    throw new Error(result.error || 'Failed to reset database');
+                }
+            } catch (error) {
+                document.getElementById('adminResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

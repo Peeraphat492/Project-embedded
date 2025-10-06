@@ -169,32 +169,211 @@
 
   <script>
     let selectedTime = null;
+    let availableSlots = [];
+    let selectedRoom = null;
 
-    function selectTime(slot) {
+    // Utility functions
+    const utils = {
+      isLoggedIn() {
+        return !!localStorage.getItem('token');
+      },
+      formatDate(date) {
+        return date.toISOString().split('T')[0];
+      }
+    };
+
+    // Default time slots (fallback)
+    const defaultTimeSlots = [
+      { start: '08:00', end: '09:00' },
+      { start: '09:00', end: '10:00' },
+      { start: '10:00', end: '11:00' },
+      { start: '11:00', end: '12:00' },
+      { start: '12:00', end: '13:00' },
+      { start: '13:00', end: '14:00' },
+      { start: '14:00', end: '15:00' },
+      { start: '15:00', end: '16:00' },
+      { start: '16:00', end: '17:00' },
+      { start: '17:00', end: '18:00' },
+      { start: '18:00', end: '19:00' },
+      { start: '19:00', end: '20:00' },
+      { start: '20:00', end: '21:00' },
+      { start: '21:00', end: '22:00' },
+      { start: '22:00', end: '23:00' },
+      { start: '23:00', end: '00:00' }
+    ];
+
+    // Check authentication (optional for demo)
+    if (!utils.isLoggedIn()) {
+      console.log('Not logged in, but allowing access for demo');
+    }
+
+    // Load selected room data
+    function loadRoomData() {
+      const roomData = localStorage.getItem("selectedRoom");
+      if (roomData) {
+        selectedRoom = JSON.parse(roomData);
+      } else {
+        // Fallback to old method
+        selectedRoom = {
+          id: localStorage.getItem("roomId") || '1',
+          name: localStorage.getItem("roomName") || 'Meeting Room1',
+          image_url: localStorage.getItem("roomImg")
+        };
+      }
+
+      if (!selectedRoom) {
+        alert('ไม่พบข้อมูลห้องที่เลือก กรุณาเลือกห้องใหม่');
+        window.location.href = "rooms.html";
+        return;
+      }
+      console.log('Selected room:', selectedRoom);
+    }
+
+    // Load available time slots
+    async function loadAvailableSlots() {
+      try {
+        // Try to get from backend first
+        const today = new Date();
+        const dateStr = utils.formatDate(today);
+        
+        const response = await fetch(`http://localhost:3000/api/rooms/${selectedRoom.id}/availability/${dateStr}`);
+        
+        if (response.ok) {
+          availableSlots = await response.json();
+          console.log('Loaded availability from backend:', availableSlots);
+        } else {
+          throw new Error('Backend not available');
+        }
+      } catch (error) {
+        console.log('Using default time slots (backend not available)');
+        // Use default time slots as fallback
+        availableSlots = defaultTimeSlots;
+      }
+      
+      updateTimeSlots();
+    }
+
+    function updateTimeSlots() {
+      const timeGrid = document.querySelector('.time-grid');
+      if (!timeGrid) return;
+
+      // Clear existing slots
+      timeGrid.innerHTML = '';
+
+      // Create time slots based on availability
+      availableSlots.forEach(slot => {
+        const slotElement = document.createElement('div');
+        slotElement.className = 'time-slot';
+        slotElement.textContent = `${slot.start} - ${slot.end}`;
+        slotElement.onclick = () => selectTime(slotElement, slot);
+        timeGrid.appendChild(slotElement);
+      });
+
+      if (availableSlots.length === 0) {
+        timeGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">ไม่มีช่วงเวลาว่างสำหรับวันนี้</p>';
+      }
+    }
+
+    function selectTime(slot, timeData) {
       if (selectedTime) {
         selectedTime.classList.remove("selected");
       }
       slot.classList.add("selected");
       selectedTime = slot;
 
-      // บันทึกเวลาที่เลือกใน Local Storage
+      // Store selected time data
       const now = new Date();
       const day = now.getDate();
       const month = now.toLocaleString('en-US', { month: 'long' });
       const year = now.getFullYear();
 
-      // สร้างรูปแบบวันที่และเวลาที่เลือก
-      const formattedDateTime = `${day} ${month} ${year}, ${slot.textContent}`;
+      const formattedDateTime = `${day} ${month} ${year}, ${timeData.start} - ${timeData.end}`;
       localStorage.setItem("bookingDateTime", formattedDateTime);
+      localStorage.setItem("selectedTimeSlot", JSON.stringify(timeData));
+      
+      console.log('Selected time:', formattedDateTime);
     }
 
-    function continueBooking() {
+    async function continueBooking() {
       if (!selectedTime) {
         alert("⚠️ กรุณาเลือกเวลาที่ต้องการ");
         return;
       }
-      window.location.href = "summary.html"; // เปลี่ยนหน้าไปยัง summary.html
+
+      try {
+        // Get booking data
+        const timeSlot = JSON.parse(localStorage.getItem("selectedTimeSlot"));
+        const today = new Date();
+        const dateStr = utils.formatDate(today);
+
+        const bookingData = {
+          room_id: parseInt(selectedRoom.id),
+          booking_date: dateStr,
+          start_time: timeSlot.start,
+          end_time: timeSlot.end
+        };
+
+        // Show loading
+        const continueBtn = document.querySelector('.footer button');
+        const originalText = continueBtn.textContent;
+        continueBtn.textContent = 'กำลังจอง...';
+        continueBtn.disabled = true;
+
+        // Try to create booking via backend
+        let bookingSuccess = false;
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch('http://localhost:3000/api/bookings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(bookingData)
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            localStorage.setItem("bookingResult", JSON.stringify(result.booking));
+            bookingSuccess = true;
+          }
+        } catch (error) {
+          console.log('Backend booking failed, using fallback');
+        }
+        
+        // Fallback: create mock booking data
+        if (!bookingSuccess) {
+          const mockBooking = {
+            id: Math.floor(Math.random() * 1000),
+            room_name: selectedRoom.name,
+            room_image: selectedRoom.image_url,
+            booking_date: dateStr,
+            start_time: timeSlot.start,
+            end_time: timeSlot.end,
+            access_code: Math.floor(100000 + Math.random() * 900000),
+            username: 'Admin'
+          };
+          localStorage.setItem("bookingResult", JSON.stringify(mockBooking));
+        }
+        
+        // Navigate to summary
+        window.location.href = "summary.html";
+        
+      } catch (error) {
+        alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        
+        // Reset button
+        const continueBtn = document.querySelector('.footer button');
+        continueBtn.textContent = 'Continue';
+        continueBtn.disabled = false;
+      }
     }
+
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', () => {
+      loadRoomData();
+      loadAvailableSlots();
+    });
   </script>
 </body>
 </html>

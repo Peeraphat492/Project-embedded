@@ -141,7 +141,7 @@
     </div>
  
     <div class="rooms">
-      <h3>Choose a room</h3>
+      <h3>Choose a room (Total: <span id="roomCount">Loading...</span>)</h3>
       <div class="room-grid">
         <!-- Rooms will be loaded dynamically by JavaScript -->
       </div>
@@ -163,66 +163,33 @@
       }
     };
 
-    // Default room data (fallback)
-    const defaultRooms = [
-      {
-        id: 1,
-        name: 'Meeting Room1',
-        image_url: 'https://www.homenayoo.com/wp-content/uploads/2018/03/1091.jpg'
-      },
-      {
-        id: 2,
-        name: 'Meeting Room2',
-        image_url: 'https://cdn.ananda.co.th/blog/thegenc/wp-content/uploads/2023/09/Meeting-01-825x550.jpg'
-      },
-      {
-        id: 3,
-        name: 'Cooking Room',
-        image_url: 'https://img.home.co.th/Images/img_v/BuyHome/20200525-114901-Co-Kitchen-FB-00.jpg'
-      },
-      {
-        id: 4,
-        name: 'Karaoke Room',
-        image_url: 'https://www.centarahotelsresorts.com/centara/sites/centara-centara/files/styles/822x800/public/2022-05/Karaoke-Room.jpg.JPG?itok=6JeEfR9-'
-      },
-      {
-        id: 5,
-        name: 'Game Room',
-        image_url: 'https://prop2morrow.com/wp-content/uploads/2021/12/2021-12-10_17-14-58-assetwise.jpg'
-      },
-      {
-        id: 6,
-        name: 'Facial Sauna Room',
-        image_url: 'https://iauna.net/wp-content/uploads/2021/05/cs.01.png'
-      }
-    ];
-
-    // Check authentication (optional)
-    if (!utils.isLoggedIn()) {
-      // For demo purposes, allow access without login
-      console.log('Not logged in, but allowing access for demo');
-    }
-
-    // Load rooms from backend or use default
+    // Load rooms from backend
     async function loadRooms() {
       try {
-        // Try to load from backend
+        // Load from backend
         const response = await fetch('http://localhost:3000/api/rooms');
         if (response.ok) {
           rooms = await response.json();
+          console.log(`Loaded ${rooms.length} rooms from backend`);
         } else {
           throw new Error('Backend not available');
         }
       } catch (error) {
-        console.log('Using default rooms data');
-        rooms = defaultRooms;
+        console.error('Error loading rooms:', error);
+        alert('⚠️ Cannot connect to backend server');
+        return;
       }
       displayRooms();
     }
 
     function displayRooms() {
       const roomGrid = document.querySelector('.room-grid');
+      const roomCount = document.getElementById('roomCount');
+      
       if (!roomGrid) return;
+
+      // Update room count
+      roomCount.textContent = rooms.length;
 
       roomGrid.innerHTML = rooms.map(room => `
         <div class="room-card" onclick="selectRoom(this, ${room.id})" data-room-id="${room.id}">
@@ -230,6 +197,8 @@
           <p>${room.name}</p>
         </div>
       `).join('');
+
+      console.log(`Displayed ${rooms.length} rooms`);
     }
 
     function selectRoom(card, roomId) {

@@ -99,10 +99,66 @@
       </div>
       <button type="submit">Login</button>
     </form>
+    node server.js    
+    <!-- Debug button -->
+    <button onclick="clearLoginData()" style="margin-top: 10px; background-color: #dc3545; font-size: 12px; padding: 8px;">Clear Login Data</button>
   </div>
 
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
+    // Simple API configuration
+    const API_BASE_URL = 'http://localhost:3000/api';
+
+    // Simple utility functions
+    const utils = {
+      isLoggedIn() {
+        return !!localStorage.getItem('token');
+      },
+      getCurrentUser() {
+        const userStr = localStorage.getItem('user');
+        return userStr ? JSON.parse(userStr) : null;
+      }
+    };
+
+    // Simple API service
+    const api = {
+      async login(username, password) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Login failed');
+          }
+          
+          return data;
+        } catch (error) {
+          // Check if it's a token error
+          if (error.message.includes('token') || error.message.includes('unauthorized')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+          
+          // Fallback to simple login if backend is not available
+          if (username === 'admin' && password === '1234') {
+            return {
+              success: true,
+              token: 'mock-token',
+              user: { id: 1, username: 'admin' }
+            };
+          }
+          throw error;
+        }
+      }
+    };
+
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
       const username = document.getElementById("username").value.trim();
@@ -113,11 +169,94 @@
         return;
       }
 
-      
-      if (username === "admin" && password === "1234") {
-        window.location.href = "rooms.html"; // ไปหน้าเลือกห้องทันที
+      try {
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'กำลังเข้าสู่ระบบ...';
+        submitBtn.disabled = true;
+
+        // Call API (with fallback)
+        const result = await api.login(username, password);
+        
+        if (result.success) {
+          // Store login data
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('user', JSON.stringify(result.user));
+          
+          alert(`✅ เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ ${result.user.username}`);
+          window.location.href = "rooms.html";
+        }
+      } catch (error) {
+        alert(`❌ เข้าสู่ระบบไม่สำเร็จ: ${error.message}`);
+        
+        // Reset button state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        submitBtn.textContent = 'Login';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Check if already logged in
+    console.log('Current token:', localStorage.getItem('token'));
+    console.log('Is logged in:', utils.isLoggedIn());
+    
+    if (utils.isLoggedIn()) {
+      console.log('Already logged in, redirecting...');
+      // Give option to stay on login page
+      if (confirm('คุณล็อกอินอยู่แล้ว ต้องการไปหน้าเลือกห้องไหม?')) {
+        window.location.href = "rooms.html";
       } else {
-        alert("❌ Username หรือ Password ไม่ถูกต้อง");
+        // Clear login data to stay on login page
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        console.log('Cleared login data');
+      }
+    }
+    
+    // Function to clear login data
+    function clearLoginData() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('selectedRoom');
+      localStorage.removeItem('roomName');
+      localStorage.removeItem('roomImg');
+      localStorage.removeItem('roomId');
+      localStorage.removeItem('bookingResult');
+      localStorage.removeItem('bookingDateTime');
+      localStorage.removeItem('selectedTimeSlot');
+      alert('ล้างข้อมูลเรียบร้อยแล้ว!');
+      location.reload();
+    }
+
+    // Function to validate token
+    async function validateToken() {
+      const token = localStorage.getItem('token');
+      if (!token || token === 'mock-token') {
+        return false;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/health`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        return response.ok;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    // Auto-clear invalid tokens
+    window.addEventListener('load', async () => {
+      if (utils.isLoggedIn()) {
+        const isValid = await validateToken();
+        if (!isValid) {
+          console.log('Token invalid, clearing...');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
     });
   </script>
