@@ -241,10 +241,16 @@
       const room = localStorage.getItem("roomNumber");
       const bookingDateTime = localStorage.getItem("bookingDateTime"); // ดึงวันที่และเวลาที่เลือกจาก Local Storage
 
+      // สร้างรหัส 6 หลักใหม่
+      const accessCode = Math.floor(100000 + Math.random() * 900000); // สร้างเลขสุ่ม 6 หลัก
+
       if (img) document.getElementById("roomImg").src = img;
       if (name) document.getElementById("roomName").textContent = name;
       if (room) document.getElementById("roomNumber").textContent = room;
       if (bookingDateTime) document.getElementById("time").textContent = bookingDateTime; // แสดงวันที่และเวลาที่เลือก
+
+      // แสดงรหัส 6 หลักในช่อง Access Code
+      document.getElementById("code").textContent = accessCode;
     });
   </script>
 </body>
