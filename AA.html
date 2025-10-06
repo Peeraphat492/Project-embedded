@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Time Control</title>
+    <style>
+        /* พื้นหลัง */
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #eef2ff, #f8fafc); /* ไล่สี */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* กล่องหลัก */
+        .container-box {
+            width: 100%;
+            max-width: 450px;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* ส่วนหัว */
+        .header {
+            background-color: #0ea5e9;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* กล่องเนื้อหา */
+        .container {
+            padding: 25px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .container:last-child {
+            border-bottom: none;
+        }
+
+        /* หัวข้อ */
+        h2 {
+            margin: 0 0 20px;
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        /* ข้อความ */
+        p {
+            margin: 10px 0;
+            font-size: 15px;
+            color: #555;
+            text-align: center;
+        }
+
+        /* ป้ายกำกับ */
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* ช่องกรอกข้อมูล */
+        select, input[type="time"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+        }
+
+        /* ปุ่ม */
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            background-color: #0ea5e9;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0284c7;
+            transform: scale(1.02);
+        }
+
+        /* สถานะ */
+        .status {
+            font-weight: bold;
+            color: #0ea5e9;
+        }
+
+        .relay-status {
+            font-weight: bold;
+            color: #ff5722;
+        }
+
+        /* ระยะห่าง */
+        .container-box {
+            margin-top: 20px;
+        }
+
+        .container {
+            margin-bottom: 20px;
+        }
+
+        select, input[type="time"] {
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-box">
+        <!-- Header -->
+        <div class="header">
+            ESP32 Time Control
+        </div>
+
+        <!-- Display Current Times -->
+        <div class="container">
+            <h2>Current Status</h2>
+            <p>Current Time: <span id="currentTime" class="status">--:--</span></p>
+            <p>Start Time: <span id="currentWakeTime" class="status">--:--</span></p>
+            <p>Stop Time: <span id="currentStopTime" class="status">--:--</span></p>
+            <p>Relay Status: <span id="relaystatus" class="relay-status">OFF</span></p>
+        </div>
+
+        <!-- Time Configuration -->
+        <div class="container">
+            <h2>Set Time Control</h2>
+            <label for="newWakeTime">Start Time:</label>
+            <select id="newWakeTime" required>
+                <option value="09:00-11:00">09:00 - 11:00</option>
+                <option value="10:00-12:00">10:00 - 12:00</option>
+                <option value="11:00-13:00">11:00 - 13:00</option>
+                <option value="12:00-14:00">12:00 - 14:00</option>
+                <option value="13:00-15:00">13:00 - 15:00</option>
+                <option value="14:00-16:00">14:00 - 16:00</option>
+                <option value="15:00-17:00">15:00 - 17:00</option>
+                <option value="16:00-18:00">16:00 - 18:00</option>
+                <option value="17:00-19:00">17:00 - 19:00</option>
+                <option value="18:00-20:00">18:00 - 20:00</option>
+                <option value="19:00-21:00">19:00 - 21:00</option>
+                <option value="20:00-22:00">20:00 - 22:00</option>
+            </select>
+            <label for="newStopTime">Stop Time:</label>
+            <input type="time" id="newStopTime" required readonly>
+            <button onclick="sendSettings()">Apply Settings</button>
+        </div>
+
+        <!-- Adjust Time -->
+        <div class="container">
+            <h2>Adjust Time</h2>
+            <label for="adjTime">Set CLOCK:</label>
+            <input type="time" id="adjTime" required>
+            <button onclick="sendAdjust()">Apply Settings</button>
+        </div>
+    </div>
+
+    <script>
+        const apiBaseUrl = 'http://' + window.location.hostname;
+
+        // Fetch current settings from ESP32
+        async function fetchCurrentSettings() {
+            try {
+                const response = await fetch(apiBaseUrl + '/getSettings');
+                const data = await response.json();
+                document.getElementById('currentWakeTime').textContent = data.wakeTime;
+                document.getElementById('currentStopTime').textContent = data.stopTime;
+                document.getElementById('relaystatus').textContent = data.relaystatus ? "ON" : "OFF";
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+            }
+        }
+
+        // Update Current Time with real-time clock
+        function updateCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Update Stop Time and Start Time display
+        function updateStopTime() {
+            const startTime = document.getElementById('newWakeTime').value;
+            const stopTime = startTime.split('-')[1];
+            document.getElementById('newStopTime').value = stopTime;
+            document.getElementById('currentWakeTime').textContent = startTime.split('-')[0];
+            document.getElementById('currentStopTime').textContent = stopTime;
+            scrollToTop();
+        }
+
+        // Scroll to top of the page
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Event listener for Start Time change
+        document.getElementById('newWakeTime').addEventListener('change', updateStopTime);
+
+        // Fetch settings on page load and start real-time clock
+        window.onload = () => {
+            fetchCurrentSettings();
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+        };
+    </script>
+</body>
+</html>

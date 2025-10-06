@@ -31,7 +31,6 @@
       background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
     }
 
-    
     .header button {
       background-color: transparent;   /* ไม่มีพื้นหลัง */
       color: #0284c7;                 /* สีลูกศร */
@@ -101,6 +100,11 @@
       font-weight: bold;
     }
 
+    .time-slot:active {
+      transform: scale(0.95); /* ลดขนาดเล็กลงเล็กน้อยเมื่อคลิก */
+      transition: transform 0.1s ease-in-out; /* เพิ่มการเปลี่ยนแปลงแบบ smooth */
+    }
+
     /* Footer */
     .footer {
       padding: 20px;
@@ -130,26 +134,35 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
+<<<<<<< HEAD
       <button onclick="history.back()">←</button>
       <h2><rooms class="html"></rooms></h2>
+=======
+      <button onclick="window.location.href='rooms.html'">←</button>
+      <h2>Select Time</h2>
+>>>>>>> origin/main
     </div>
 
     
     <div class="times">
       <h3>Choose Time</h3>
       <div class="time-grid">
-        <div class="time-slot" onclick="selectTime(this)">09:00 - 11:00</div>
-        <div class="time-slot" onclick="selectTime(this)">10:00 - 12:00</div>
-        <div class="time-slot" onclick="selectTime(this)">11:00 - 13:00</div>
-        <div class="time-slot" onclick="selectTime(this)">12:00 - 14:00</div>
-        <div class="time-slot" onclick="selectTime(this)">13:00 - 15:00</div>
-        <div class="time-slot" onclick="selectTime(this)">14:00 - 16:00</div>
-        <div class="time-slot" onclick="selectTime(this)">15:00 - 17:00</div>
-        <div class="time-slot" onclick="selectTime(this)">16:00 - 18:00</div>
-        <div class="time-slot" onclick="selectTime(this)">17:00 - 19:00</div>
-        <div class="time-slot" onclick="selectTime(this)">18:00 - 20:00</div>
-        <div class="time-slot" onclick="selectTime(this)">19:00 - 21:00</div>
-        <div class="time-slot" onclick="selectTime(this)">20:00 - 22:00</div>
+        <div class="time-slot" onclick="selectTime(this)">08:00 - 09:00</div>
+        <div class="time-slot" onclick="selectTime(this)">09:00 - 10:00</div>
+        <div class="time-slot" onclick="selectTime(this)">10:00 - 11:00</div>
+        <div class="time-slot" onclick="selectTime(this)">11:00 - 12:00</div>
+        <div class="time-slot" onclick="selectTime(this)">12:00 - 13:00</div>
+        <div class="time-slot" onclick="selectTime(this)">13:00 - 14:00</div>
+        <div class="time-slot" onclick="selectTime(this)">14:00 - 15:00</div>
+        <div class="time-slot" onclick="selectTime(this)">15:00 - 16:00</div>
+        <div class="time-slot" onclick="selectTime(this)">16:00 - 17:00</div>
+        <div class="time-slot" onclick="selectTime(this)">17:00 - 18:00</div>
+        <div class="time-slot" onclick="selectTime(this)">18:00 - 19:00</div>
+        <div class="time-slot" onclick="selectTime(this)">19:00 - 20:00</div>
+        <div class="time-slot" onclick="selectTime(this)">20:00 - 21:00</div>
+        <div class="time-slot" onclick="selectTime(this)">21:00 - 22:00</div>
+        <div class="time-slot" onclick="selectTime(this)">22:00 - 23:00</div>
+        <div class="time-slot" onclick="selectTime(this)">23:00 - 00:00</div>
       </div>
     </div>
 
@@ -168,6 +181,16 @@
       }
       slot.classList.add("selected");
       selectedTime = slot;
+
+      // บันทึกเวลาที่เลือกใน Local Storage
+      const now = new Date();
+      const day = now.getDate();
+      const month = now.toLocaleString('en-US', { month: 'long' });
+      const year = now.getFullYear();
+
+      // สร้างรูปแบบวันที่และเวลาที่เลือก
+      const formattedDateTime = `${day} ${month} ${year}, ${slot.textContent}`;
+      localStorage.setItem("bookingDateTime", formattedDateTime);
     }
 
     function continueBooking() {
@@ -175,9 +198,7 @@
         alert("⚠️ กรุณาเลือกเวลาที่ต้องการ");
         return;
       }
-      const timeText = selectedTime.textContent;
-      alert("✅ คุณเลือกเวลา: " + timeText);
-      window.location.href = "summary.html";
+      window.location.href = "summary.html"; // เปลี่ยนหน้าไปยัง summary.html
     }
   </script>
 </body>

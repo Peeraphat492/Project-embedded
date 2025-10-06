@@ -8,7 +8,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f8fafc;
+      background-color: #edebeb;
       display: flex;
       justify-content: center;
     }
@@ -16,44 +16,18 @@
     .container {
       width: 100%;
       max-width: 450px;
-      background: #fff;
+      background: linear-gradient(to bottom, #eef2ff, #f8fafc);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding-bottom: 80px; 
     }
 
-    /* Header */
     .header {
       display: flex;
       align-items: center;
       padding: 15px;
       border-bottom: 1px solid #ddd;
       background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
-    }
-
-    /* ปุ่มลูกศร ← เป็นวงกลมขอบโปร่ง */
-    .header button {
-      background-color: transparent;   /* ไม่มีพื้นหลัง */
-      color: #0ea5e9;                 /* สีลูกศร */
-      border: 2px solid #0ea5e9;      /* ขอบวงกลม */
-      font-size: 20px;
-      cursor: pointer;
-      margin-right: 10px;
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;             /* ทำให้เป็นวงกลม */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: border-color 0.2s, transform 0.2s, color 0.2s, box-shadow 0.2s;
-    }
-
-    .header button:hover {
-      border-color: #0284c7;          /* เปลี่ยนสีขอบเมื่อ hover */
-      color: #0284c7;                 /* เปลี่ยนสีลูกศรเมื่อ hover */
-      transform: scale(1.1);          /* ขยายเล็กน้อย */
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* เพิ่มเงา */
     }
 
     .header h2 {
@@ -82,12 +56,12 @@
       background: #fff;
       border-radius: 10px;
       padding: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
     .room-card img {
-      width: 60px;
-      height: 60px;
+      width: 100px;
+      height: 100px;
       border-radius: 8px;
       object-fit: cover;
       margin-right: 15px;
@@ -156,7 +130,6 @@
       transform: scale(1.02);
     }
 
-    /* Bottom Navigation */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -169,10 +142,10 @@
       padding: 12px 0;
       border-top: 1px solid #ddd;
       background: #fff;
-      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .bottom-nav div {
+    .nav-item {
       text-align: center;
       font-size: 13px;
       color: #555;
@@ -182,9 +155,20 @@
       align-items: center;
     }
 
-    .bottom-nav div.active {
+    .nav-item img {
+      width: 31px; /* ปรับขนาดไอคอนให้สมส่วน */
+      height: 31px;
+      margin-bottom: 5px;
+    }
+
+    .nav-item.active {
       font-weight: bold;
       color: #0ea5e9;
+    }
+
+    .nav-item.disabled {
+      pointer-events: none; /* ปิดการคลิก */
+      color: #000; /* สีตัวหนังสือเป็นสีดำ */
     }
   </style>
 </head>
@@ -192,7 +176,6 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <button onclick="window.location.href='time.html'">←</button>
       <h2>Booking Summary</h2>
     </div>
 
@@ -213,11 +196,11 @@
       <h3>Booking Details</h3>
       <div class="detail-item">
         <label>Name</label>
-        <span id="name">Ethan Carter</span>
+        <span id="name">Admin</span>
       </div>
       <div class="detail-item">
         <label>Booking Time</label>
-        <span id="time">July 20, 2024, 2:00 PM</span>
+        <span id="time"></span> <!-- จะแสดงวันที่และเวลาจริง -->
       </div>
       <div class="detail-item">
         <label>Access Code</label>
@@ -231,16 +214,19 @@
     </div>
   </div>
 
-  <!-- Bottom Nav -->
+  <!-- Bottom Navigation -->
   <div class="bottom-nav">
-    <div>
-      🏠<br>Home
+    <div onclick="window.location.href='login.html'" class="nav-item">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" alt="Home Icon">
+      <span>Home</span>
     </div>
-    <div class="active">
-      📑<br>My Bookings
+    <div onclick="window.location.href='manual.html'" class="nav-item">
+      <img src="https://i.postimg.cc/J0STQkfy/santa-claus.png" alt="Manual Icon">
+      <span>Manual</span>
     </div>
-    <div>
-      👤<br>Profile
+    <div class="nav-item disabled">
+      <img src="https://i.postimg.cc/mkwTKTSH/vecteezy-profile-icon-design-vector-5544718-removebg-preview.png" alt="Profile Icon">
+      <span>Profile</span>
     </div>
   </div>
 
@@ -249,13 +235,22 @@
       window.location.href = "time.html";
     }
 
-    window.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('DOMContentLoaded', function () {
       const img = localStorage.getItem("roomImg");
       const name = localStorage.getItem("roomName");
       const room = localStorage.getItem("roomNumber");
-      if(img) document.getElementById("roomImg").src = img;
-      if(name) document.getElementById("roomName").textContent = name;
-      if(room) document.getElementById("roomNumber").textContent = room;
+      const bookingDateTime = localStorage.getItem("bookingDateTime"); // ดึงวันที่และเวลาที่เลือกจาก Local Storage
+
+      // สร้างรหัส 6 หลักใหม่
+      const accessCode = Math.floor(100000 + Math.random() * 900000); // สร้างเลขสุ่ม 6 หลัก
+
+      if (img) document.getElementById("roomImg").src = img;
+      if (name) document.getElementById("roomName").textContent = name;
+      if (room) document.getElementById("roomNumber").textContent = room;
+      if (bookingDateTime) document.getElementById("time").textContent = bookingDateTime; // แสดงวันที่และเวลาที่เลือก
+
+      // แสดงรหัส 6 หลักในช่อง Access Code
+      document.getElementById("code").textContent = accessCode;
     });
   </script>
 </body>
