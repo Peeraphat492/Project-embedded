@@ -142,22 +142,7 @@
     <div class="times">
       <h3>Choose Time</h3>
       <div class="time-grid">
-        <div class="time-slot" onclick="selectTime(this)">08:00 - 09:00</div>
-        <div class="time-slot" onclick="selectTime(this)">09:00 - 10:00</div>
-        <div class="time-slot" onclick="selectTime(this)">10:00 - 11:00</div>
-        <div class="time-slot" onclick="selectTime(this)">11:00 - 12:00</div>
-        <div class="time-slot" onclick="selectTime(this)">12:00 - 13:00</div>
-        <div class="time-slot" onclick="selectTime(this)">13:00 - 14:00</div>
-        <div class="time-slot" onclick="selectTime(this)">14:00 - 15:00</div>
-        <div class="time-slot" onclick="selectTime(this)">15:00 - 16:00</div>
-        <div class="time-slot" onclick="selectTime(this)">16:00 - 17:00</div>
-        <div class="time-slot" onclick="selectTime(this)">17:00 - 18:00</div>
-        <div class="time-slot" onclick="selectTime(this)">18:00 - 19:00</div>
-        <div class="time-slot" onclick="selectTime(this)">19:00 - 20:00</div>
-        <div class="time-slot" onclick="selectTime(this)">20:00 - 21:00</div>
-        <div class="time-slot" onclick="selectTime(this)">21:00 - 22:00</div>
-        <div class="time-slot" onclick="selectTime(this)">22:00 - 23:00</div>
-        <div class="time-slot" onclick="selectTime(this)">23:00 - 00:00</div>
+        <!-- Time slots will be loaded dynamically by JavaScript -->
       </div>
     </div>
 
@@ -202,13 +187,16 @@
       { start: '23:00', end: '00:00' }
     ];
 
-    // Check authentication (optional for demo)
-    if (!utils.isLoggedIn()) {
-      console.log('Not logged in, but allowing access for demo');
-    }
-
     // Load selected room data
     function loadRoomData() {
+      // Check authentication first
+      if (!utils.isLoggedIn()) {
+        console.log('Not logged in, redirecting to login');
+        alert('⚠️ กรุณาล็อกอินก่อนทำการจอง');
+        window.location.href = "login.html";
+        return false;
+      }
+
       const roomData = localStorage.getItem("selectedRoom");
       if (roomData) {
         selectedRoom = JSON.parse(roomData);
@@ -224,9 +212,10 @@
       if (!selectedRoom) {
         alert('ไม่พบข้อมูลห้องที่เลือก กรุณาเลือกห้องใหม่');
         window.location.href = "rooms.html";
-        return;
+        return false;
       }
       console.log('Selected room:', selectedRoom);
+      return true;
     }
 
     // Load available time slots
@@ -323,6 +312,10 @@
         let bookingSuccess = false;
         try {
           const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('ไม่พบ token กรุณาล็อกอินใหม่');
+          }
+
           const response = await fetch('http://localhost:3000/api/bookings', {
             method: 'POST',
             headers: {
@@ -336,28 +329,26 @@
             const result = await response.json();
             localStorage.setItem("bookingResult", JSON.stringify(result.booking));
             bookingSuccess = true;
+            console.log('Booking created successfully:', result.booking);
+          } else {
+            const error = await response.json();
+            throw new Error(error.error || `HTTP ${response.status}`);
           }
         } catch (error) {
-          console.log('Backend booking failed, using fallback');
+          console.error('Backend booking failed:', error);
+          alert(`❌ การจองไม่สำเร็จ: ${error.message}`);
+          
+          // Reset button
+          continueBtn.textContent = originalText;
+          continueBtn.disabled = false;
+          return;
         }
         
-        // Fallback: create mock booking data
-        if (!bookingSuccess) {
-          const mockBooking = {
-            id: Math.floor(Math.random() * 1000),
-            room_name: selectedRoom.name,
-            room_image: selectedRoom.image_url,
-            booking_date: dateStr,
-            start_time: timeSlot.start,
-            end_time: timeSlot.end,
-            access_code: Math.floor(100000 + Math.random() * 900000),
-            username: 'Admin'
-          };
-          localStorage.setItem("bookingResult", JSON.stringify(mockBooking));
+        // Only proceed if booking was successful
+        if (bookingSuccess) {
+          // Navigate to summary
+          window.location.href = "summary.html";
         }
-        
-        // Navigate to summary
-        window.location.href = "summary.html";
         
       } catch (error) {
         alert(`เกิดข้อผิดพลาด: ${error.message}`);
@@ -371,8 +362,10 @@
 
     // Initialize page
     window.addEventListener('DOMContentLoaded', () => {
-      loadRoomData();
-      loadAvailableSlots();
+      const roomLoaded = loadRoomData();
+      if (roomLoaded !== false) {
+        loadAvailableSlots();
+      }
     });
   </script>
 </body>

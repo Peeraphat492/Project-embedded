@@ -399,6 +399,24 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Get all bookings (Admin only)
+app.get('/api/admin/bookings', (req, res) => {
+  db.all(
+    `SELECT b.*, r.name as room_name, u.username
+     FROM bookings b
+     LEFT JOIN rooms r ON b.room_id = r.id
+     LEFT JOIN users u ON b.user_id = u.id
+     ORDER BY b.created_at DESC`,
+    [],
+    (err, bookings) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(bookings);
+    }
+  );
+});
+
 // Clear all bookings (Admin only)
 app.delete('/api/admin/clear-bookings', (req, res) => {
   db.run('DELETE FROM bookings', [], function(err) {

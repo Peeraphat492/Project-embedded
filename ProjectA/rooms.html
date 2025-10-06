@@ -197,19 +197,22 @@
       }
     ];
 
-    // Check authentication (optional)
-    if (!utils.isLoggedIn()) {
-      // For demo purposes, allow access without login
-      console.log('Not logged in, but allowing access for demo');
-    }
-
     // Load rooms from backend or use default
     async function loadRooms() {
+      // Check authentication first
+      if (!utils.isLoggedIn()) {
+        console.log('Not logged in, redirecting to login');
+        alert('⚠️ กรุณาล็อกอินก่อนเลือกห้อง');
+        window.location.href = "login.html";
+        return;
+      }
+
       try {
         // Try to load from backend
         const response = await fetch('http://localhost:3000/api/rooms');
         if (response.ok) {
           rooms = await response.json();
+          console.log('Loaded rooms from backend:', rooms.length);
         } else {
           throw new Error('Backend not available');
         }

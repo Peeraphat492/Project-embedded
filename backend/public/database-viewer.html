@@ -256,9 +256,8 @@
 
         async function loadAllBookings() {
             try {
-                // This endpoint might not exist, so we'll create a workaround
-                const container = document.getElementById('bookingsData');
-                container.innerHTML = '<p class="success">Bookings are user-specific. Use /api/bookings/my after login to see personal bookings.</p>';
+                const data = await makeRequest('/admin/bookings');
+                displayTable(data, 'bookingsData', ['ID', 'Room_name', 'Username', 'Booking_date', 'Start_time', 'End_time', 'Access_code', 'Status', 'Created_at']);
             } catch (error) {
                 document.getElementById('bookingsData').innerHTML = `<p class="error">Error: ${error.message}</p>`;
             }
