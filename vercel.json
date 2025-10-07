@@ -4,10 +4,6 @@
     {
       "src": "backend/server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "backend/public/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -17,7 +13,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "backend/public/$1"
+      "dest": "backend/server.js"
     }
   ],
   "functions": {

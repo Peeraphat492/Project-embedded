@@ -585,3 +585,6 @@ setInterval(() => {
     forceGarbageCollection();
   }
 }, 30 * 60 * 1000); // Every 30 minutes
+
+// Export for Vercel
+module.exports = app;
