@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking Summary</title>
+  <!-- API Service -->
+  <script src="../backend/public/api.js"></script>
   <style>
     body {
       margin: 0;
@@ -231,27 +233,81 @@
   </div>
 
   <script>
+    // Check authentication
+    if (!utils.isLoggedIn()) {
+      window.location.href = "login.html";
+    }
+
     function editBooking() {
       window.location.href = "time.html";
     }
 
-    window.addEventListener('DOMContentLoaded', function () {
+    function loadBookingData() {
+      // Try to get booking result from backend first
+      const bookingResult = localStorage.getItem("bookingResult");
+      if (bookingResult) {
+        const booking = JSON.parse(bookingResult);
+        displayBookingData(booking);
+        return;
+      }
+
+      // Fallback to old method
       const img = localStorage.getItem("roomImg");
       const name = localStorage.getItem("roomName");
-      const room = localStorage.getItem("roomNumber");
-      const bookingDateTime = localStorage.getItem("bookingDateTime"); // ดึงวันที่และเวลาที่เลือกจาก Local Storage
+      const room = localStorage.getItem("roomNumber") || "Room 201";
+      const bookingDateTime = localStorage.getItem("bookingDateTime");
+      const accessCode = Math.floor(100000 + Math.random() * 900000);
+      const user = utils.getCurrentUser();
 
-      // สร้างรหัส 6 หลักใหม่
-      const accessCode = Math.floor(100000 + Math.random() * 900000); // สร้างเลขสุ่ม 6 หลัก
+      const fallbackData = {
+        room_name: name,
+        room_image: img,
+        booking_date: bookingDateTime,
+        access_code: accessCode,
+        username: user ? user.username : 'Admin'
+      };
 
-      if (img) document.getElementById("roomImg").src = img;
-      if (name) document.getElementById("roomName").textContent = name;
-      if (room) document.getElementById("roomNumber").textContent = room;
-      if (bookingDateTime) document.getElementById("time").textContent = bookingDateTime; // แสดงวันที่และเวลาที่เลือก
+      displayBookingData(fallbackData);
+    }
 
-      // แสดงรหัส 6 หลักในช่อง Access Code
-      document.getElementById("code").textContent = accessCode;
-    });
+    function displayBookingData(booking) {
+      // Update room image
+      if (booking.room_image) {
+        document.getElementById("roomImg").src = booking.room_image;
+      }
+
+      // Update room name
+      if (booking.room_name) {
+        document.getElementById("roomName").textContent = booking.room_name;
+      }
+
+      // Update room number (or keep default)
+      const roomNumber = document.getElementById("roomNumber");
+      if (booking.room_number) {
+        roomNumber.textContent = booking.room_number;
+      }
+
+      // Update user name
+      if (booking.username) {
+        document.getElementById("name").textContent = booking.username;
+      }
+
+      // Update booking time
+      if (booking.booking_date && booking.start_time && booking.end_time) {
+        const timeDisplay = `${booking.booking_date}, ${booking.start_time} - ${booking.end_time}`;
+        document.getElementById("time").textContent = timeDisplay;
+      } else if (booking.booking_date) {
+        document.getElementById("time").textContent = booking.booking_date;
+      }
+
+      // Update access code
+      if (booking.access_code) {
+        document.getElementById("code").textContent = booking.access_code;
+      }
+    }
+
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', loadBookingData);
   </script>
 </body>
 </html>
