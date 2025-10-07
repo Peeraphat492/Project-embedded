@@ -469,13 +469,18 @@ app.get('/api/admin/stats', (req, res) => {
   });
 });
 
+// Default route - redirect to login
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
+// 404 handler (must be last)
 app.use((req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });

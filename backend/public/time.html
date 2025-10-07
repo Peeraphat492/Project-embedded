@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Time</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #eef2ff, #f8fafc);
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px;
+      background: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
+    }
+
+    .header button {
+      background-color: transparent;   /* ไม่มีพื้นหลัง */
+      color: #0284c7;                 /* สีลูกศร */
+      border: 2px solid #0284c7;      /* ขอบวงกลม */
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 10px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;             /* ทำให้เป็นวงกลม */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, transform 0.2s, color 0.2s;
+    }
+
+    .header button:hover {
+      border-color: #0285c7b4;        /* เปลี่ยนสีขอบเมื่อ hover */
+      color: #0285c7b4;               /* เปลี่ยนสีลูกศรเมื่อ hover */
+      transform: scale(1.1);          /* ขยายเล็กน้อย */
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    /* Times Grid */
+    .times {
+      padding: 20px;
+      flex-grow: 1;
+    }
+
+    .times h3 {
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .time-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .time-slot {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 14px;
+      background: #fff;
+      transition: all 0.2s;
+    }
+
+    .time-slot:hover {
+      background: #f1f5f9;
+    }
+
+    .time-slot.selected {
+      border: 2px solid #0ea5e9;
+      background: #e0f2fe;
+      font-weight: bold;
+    }
+
+    .time-slot:active {
+      transform: scale(0.95); /* ลดขนาดเล็กลงเล็กน้อยเมื่อคลิก */
+      transition: transform 0.1s ease-in-out; /* เพิ่มการเปลี่ยนแปลงแบบ smooth */
+    }
+
+    /* Footer */
+    .footer {
+      padding: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .footer button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0ea5e9;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .footer button:hover {
+      background-color: #0284c7;
+      transform: scale(1.02);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <button onclick="window.location.href='rooms.html'">←</button>
+      <h2>Select Time</h2>
+    </div>
+
+    <!-- Time Selection -->
+    <div class="times">
+      <h3>Choose Time</h3>
+      <div class="time-grid">
+        <!-- Time slots will be loaded dynamically by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <button onclick="continueBooking()">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    // API configuration
+    const API_BASE_URL = window.location.hostname === 'localhost' 
+      ? 'http://localhost:3000/api' 
+      : '/api';
+
+    let selectedRoom = null;
+    let selectedTime = null;
+    let availableSlots = [];
+
+    // Utility functions
+    const utils = {
+      isLoggedIn() {
+        return !!localStorage.getItem('token');
+      },
+      formatDate(date) {
+        return date.toISOString().split('T')[0];
+      }
+    };
+
+    // Default time slots (fallback)
+    const defaultTimeSlots = [
+      { start: '08:00', end: '09:00' },
+      { start: '09:00', end: '10:00' },
+      { start: '10:00', end: '11:00' },
+      { start: '11:00', end: '12:00' },
+      { start: '12:00', end: '13:00' },
+      { start: '13:00', end: '14:00' },
+      { start: '14:00', end: '15:00' },
+      { start: '15:00', end: '16:00' },
+      { start: '16:00', end: '17:00' },
+      { start: '17:00', end: '18:00' },
+      { start: '18:00', end: '19:00' },
+      { start: '19:00', end: '20:00' },
+      { start: '20:00', end: '21:00' },
+      { start: '21:00', end: '22:00' },
+      { start: '22:00', end: '23:00' },
+      { start: '23:00', end: '00:00' }
+    ];
+
+    // Load selected room data
+    function loadRoomData() {
+      // Check authentication first
+      if (!utils.isLoggedIn()) {
+        console.log('Not logged in, redirecting to login');
+        alert('⚠️ กรุณาล็อกอินก่อนทำการจอง');
+        window.location.href = "login.html";
+        return false;
+      }
+
+      const roomData = localStorage.getItem("selectedRoom");
+      if (roomData) {
+        selectedRoom = JSON.parse(roomData);
+      } else {
+        // Fallback to old method
+        selectedRoom = {
+          id: localStorage.getItem("roomId") || '1',
+          name: localStorage.getItem("roomName") || 'Meeting Room1',
+          image_url: localStorage.getItem("roomImg")
+        };
+      }
+
+      if (!selectedRoom) {
+        alert('ไม่พบข้อมูลห้องที่เลือก กรุณาเลือกห้องใหม่');
+        window.location.href = "rooms.html";
+        return false;
+      }
+      console.log('Selected room:', selectedRoom);
+      return true;
+    }
+
+    // Load available time slots
+    async function loadAvailableSlots() {
+      try {
+        // Try to get from backend first
+        const today = new Date();
+        const dateStr = utils.formatDate(today);
+        
+        const response = await fetch(`${API_BASE_URL}/rooms/${selectedRoom.id}/availability/${dateStr}`);
+        
+        if (response.ok) {
+          availableSlots = await response.json();
+          console.log('Loaded availability from backend:', availableSlots);
+        } else {
+          throw new Error('Backend not available');
+        }
+      } catch (error) {
+        console.log('Using default time slots (backend not available)');
+        // Use default time slots as fallback
+        availableSlots = defaultTimeSlots;
+      }
+      
+      updateTimeSlots();
+    }
+
+    function updateTimeSlots() {
+      const timeGrid = document.querySelector('.time-grid');
+      if (!timeGrid) return;
+
+      // Clear existing slots
+      timeGrid.innerHTML = '';
+
+      // Create time slots based on availability
+      availableSlots.forEach(slot => {
+        const slotElement = document.createElement('div');
+        slotElement.className = 'time-slot';
+        slotElement.textContent = `${slot.start} - ${slot.end}`;
+        slotElement.onclick = () => selectTime(slotElement, slot);
+        timeGrid.appendChild(slotElement);
+      });
+
+      if (availableSlots.length === 0) {
+        timeGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">ไม่มีช่วงเวลาว่างสำหรับวันนี้</p>';
+      }
+    }
+
+    function selectTime(slot, timeData) {
+      if (selectedTime) {
+        selectedTime.classList.remove("selected");
+      }
+      slot.classList.add("selected");
+      selectedTime = slot;
+
+      // Store selected time data
+      const now = new Date();
+      const day = now.getDate();
+      const month = now.toLocaleString('en-US', { month: 'long' });
+      const year = now.getFullYear();
+
+      const formattedDateTime = `${day} ${month} ${year}, ${timeData.start} - ${timeData.end}`;
+      localStorage.setItem("bookingDateTime", formattedDateTime);
+      localStorage.setItem("selectedTimeSlot", JSON.stringify(timeData));
+      
+      console.log('Selected time:', formattedDateTime);
+    }
+
+    async function continueBooking() {
+      if (!selectedTime) {
+        alert("⚠️ กรุณาเลือกเวลาที่ต้องการ");
+        return;
+      }
+
+      try {
+        // Get booking data
+        const timeSlot = JSON.parse(localStorage.getItem("selectedTimeSlot"));
+        const today = new Date();
+        const dateStr = utils.formatDate(today);
+
+        const bookingData = {
+          room_id: parseInt(selectedRoom.id),
+          booking_date: dateStr,
+          start_time: timeSlot.start,
+          end_time: timeSlot.end
+        };
+
+        // Show loading
+        const continueBtn = document.querySelector('.footer button');
+        const originalText = continueBtn.textContent;
+        continueBtn.textContent = 'กำลังจอง...';
+        continueBtn.disabled = true;
+
+        // Try to create booking via backend
+        let bookingSuccess = false;
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('ไม่พบ token กรุณาล็อกอินใหม่');
+          }
+
+          const response = await fetch(`${API_BASE_URL}/bookings`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(bookingData)
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            localStorage.setItem("bookingResult", JSON.stringify(result.booking));
+            bookingSuccess = true;
+            console.log('Booking created successfully:', result.booking);
+          } else {
+            const error = await response.json();
+            throw new Error(error.error || `HTTP ${response.status}`);
+          }
+        } catch (error) {
+          console.error('Backend booking failed:', error);
+          alert(`❌ การจองไม่สำเร็จ: ${error.message}`);
+          
+          // Reset button
+          continueBtn.textContent = originalText;
+          continueBtn.disabled = false;
+          return;
+        }
+        
+        // Only proceed if booking was successful
+        if (bookingSuccess) {
+          // Navigate to summary
+          window.location.href = "summary.html";
+        }
+        
+      } catch (error) {
+        alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        
+        // Reset button
+        const continueBtn = document.querySelector('.footer button');
+        continueBtn.textContent = 'Continue';
+        continueBtn.disabled = false;
+      }
+    }
+
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', () => {
+      const roomLoaded = loadRoomData();
+      if (roomLoaded !== false) {
+        loadAvailableSlots();
+      }
+    });
+  </script>
+</body>
+</html>
