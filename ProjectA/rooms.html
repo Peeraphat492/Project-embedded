@@ -209,7 +209,7 @@
 
       try {
         // Try to load from backend
-        const response = await fetch('http://localhost:3000/api/rooms');
+        const response = await fetch(`${window.location.origin}/api/rooms`);
         if (response.ok) {
           rooms = await response.json();
           console.log('Loaded rooms from backend:', rooms.length);

@@ -225,7 +225,7 @@
         const today = new Date();
         const dateStr = utils.formatDate(today);
         
-        const response = await fetch(`http://localhost:3000/api/rooms/${selectedRoom.id}/availability/${dateStr}`);
+        const response = await fetch(`${window.location.origin}/api/rooms/${selectedRoom.id}/availability/${dateStr}`);
         
         if (response.ok) {
           availableSlots = await response.json();
@@ -316,7 +316,7 @@
             throw new Error('ไม่พบ token กรุณาล็อกอินใหม่');
           }
 
-          const response = await fetch('http://localhost:3000/api/bookings', {
+          const response = await fetch(`${window.location.origin}/api/bookings`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
