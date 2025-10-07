@@ -154,9 +154,9 @@
 
   <script>
     // API configuration
-    const API_BASE_URL = window.location.hostname === 'localhost' 
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:3000/api' 
-      : '/api';
+      : `http://${window.location.hostname}:3000/api`;
 
     let selectedRoom = null;
     let selectedTime = null;
@@ -321,6 +321,13 @@
             throw new Error('ไม่พบ token กรุณาล็อกอินใหม่');
           }
 
+          // Check if server is running first
+          try {
+            await fetch(`${API_BASE_URL}/health`);
+          } catch (healthError) {
+            throw new Error('ไม่สามารถเชื่อมต่อกับ server ได้ กรุณาตรวจสอบว่า server ทำงานอยู่');
+          }
+
           const response = await fetch(`${API_BASE_URL}/bookings`, {
             method: 'POST',
             headers: {
@@ -336,8 +343,16 @@
             bookingSuccess = true;
             console.log('Booking created successfully:', result.booking);
           } else {
-            const error = await response.json();
-            throw new Error(error.error || `HTTP ${response.status}`);
+            // Handle non-JSON error responses
+            let errorMessage;
+            try {
+              const error = await response.json();
+              errorMessage = error.error || `HTTP ${response.status}`;
+            } catch (jsonError) {
+              // If response is not JSON, use status text or status code
+              errorMessage = response.statusText || `HTTP ${response.status}`;
+            }
+            throw new Error(errorMessage);
           }
         } catch (error) {
           console.error('Backend booking failed:', error);

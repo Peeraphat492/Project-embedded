@@ -106,9 +106,9 @@
 
   <script>
     // Simple API configuration
-    const API_BASE_URL = window.location.hostname === 'localhost' 
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:3000/api' 
-      : '/api';
+      : `http://${window.location.hostname}:3000/api`;
 
     // Simple utility functions
     const utils = {
@@ -133,7 +133,12 @@
             body: JSON.stringify({ username, password })
           });
           
-          const data = await response.json();
+          let data;
+          try {
+            data = await response.json();
+          } catch (jsonError) {
+            throw new Error('Server response is not valid JSON');
+          }
           
           if (!response.ok) {
             throw new Error(data.error || 'Login failed');
@@ -141,6 +146,11 @@
           
           return data;
         } catch (error) {
+          // Check if it's a network error
+          if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('ไม่สามารถเชื่อมต่อกับ server ได้');
+          }
+          
           // Check if it's a token error
           if (error.message.includes('token') || error.message.includes('unauthorized')) {
             localStorage.removeItem('token');
