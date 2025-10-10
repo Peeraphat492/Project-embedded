@@ -1,0 +1,24 @@
+{
+  "name": "smart-room-reservation",
+  "version": "1.0.0",
+  "description": "Smart Room Reservation System - Ready to run!",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "install": "cd backend && npm install",
+    "setup": "npm install && echo 'Setup completed! Now run: npm start'",
+    "build": "echo 'Frontend ready for GitHub Pages deployment'"
+  },
+  "keywords": [
+    "room-reservation",
+    "smart-room",
+    "booking-system"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Peeraphat492/Project-embedded.git"
+  }
+}
