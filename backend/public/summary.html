@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Summary</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #edebeb;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 450px;
+      background: linear-gradient(to bottom, #eef2ff, #f8fafc);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    .reservation {
+      padding: 20px;
+      background: #f1f5f9;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .reservation h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .room-card {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .room-card img {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-right: 15px;
+    }
+
+    .room-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .room-info strong {
+      font-size: 15px;
+    }
+
+    .room-info span {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .details {
+      padding: 20px;
+    }
+
+    .details h3 {
+      font-size: 16px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .detail-item {
+      margin-bottom: 15px;
+    }
+
+    .detail-item label {
+      display: block;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 3px;
+    }
+
+    .detail-item span {
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .footer {
+      padding: 20px;
+      border-top: 1px solid #ddd;
+    }
+
+    .footer button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0ea5e9;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .footer button:hover {
+      background-color: #0284c7;
+      transform: scale(1.02);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 450px;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      border-top: 1px solid #ddd;
+      background: #fff;
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-item {
+      text-align: center;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .nav-item img {
+      width: 31px; /* ปรับขนาดไอคอนให้สมส่วน */
+      height: 31px;
+      margin-bottom: 5px;
+    }
+
+    .nav-item.active {
+      font-weight: bold;
+      color: #0ea5e9;
+    }
+
+    .nav-item.disabled {
+      pointer-events: none; /* ปิดการคลิก */
+      color: #000; /* สีตัวหนังสือเป็นสีดำ */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h2>Booking Summary</h2>
+    </div>
+
+    <!-- Reservation Info -->
+    <div class="reservation">
+      <h3>Smart Room Reservation</h3>
+      <div class="room-card">
+        <img id="roomImg" src="https://i.imgur.com/Qb3l4ZB.jpg" alt="Room">
+        <div class="room-info">
+          <strong id="roomName">Condo Unit</strong>
+          <span id="roomNumber">Room 201</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Details -->
+    <div class="details">
+      <h3>Booking Details</h3>
+      <div class="detail-item">
+        <label>Name</label>
+        <span id="name">Admin</span>
+      </div>
+      <div class="detail-item">
+        <label>Booking Time</label>
+        <span id="time"></span> <!-- จะแสดงวันที่และเวลาจริง -->
+      </div>
+      <div class="detail-item">
+        <label>Access Code</label>
+        <span id="code">123456</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <button onclick="editBooking()">Back to Edit</button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div onclick="window.location.href='login.html'" class="nav-item">
+      <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" alt="Home Icon">
+      <span>Home</span>
+    </div>
+    <div onclick="window.location.href='manual.html'" class="nav-item">
+      <img src="https://i.postimg.cc/J0STQkfy/santa-claus.png" alt="Manual Icon">
+      <span>Manual</span>
+    </div>
+    <div class="nav-item disabled">
+      <img src="https://i.postimg.cc/mkwTKTSH/vecteezy-profile-icon-design-vector-5544718-removebg-preview.png" alt="Profile Icon">
+      <span>Profile</span>
+    </div>
+  </div>
+
+  <script>
+    // API configuration
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:3000/api' 
+      : `http://${window.location.hostname}:3000/api`;
+
+    // Utility functions
+    const utils = {
+      isLoggedIn() {
+        return !!localStorage.getItem('token');
+      },
+      getCurrentUser() {
+        const userStr = localStorage.getItem('user');
+        return userStr ? JSON.parse(userStr) : null;
+      },
+      formatDate(date) {
+        return date.toISOString().split('T')[0];
+      }
+    };
+
+    // Check authentication
+    if (!utils.isLoggedIn()) {
+      window.location.href = "login.html";
+    }
+
+    function editBooking() {
+      window.location.href = "time.html";
+    }
+
+    function loadBookingData() {
+      // Try to get booking result from backend first
+      const bookingResult = localStorage.getItem("bookingResult");
+      if (bookingResult) {
+        const booking = JSON.parse(bookingResult);
+        displayBookingData(booking);
+        return;
+      }
+
+      // Fallback to old method
+      const img = localStorage.getItem("roomImg");
+      const name = localStorage.getItem("roomName");
+      const room = localStorage.getItem("roomNumber") || "Room 201";
+      const bookingDateTime = localStorage.getItem("bookingDateTime");
+      const accessCode = Math.floor(100000 + Math.random() * 900000);
+      const user = utils.getCurrentUser();
+
+      const fallbackData = {
+        room_name: name,
+        room_image: img,
+        booking_date: bookingDateTime,
+        access_code: accessCode,
+        username: user ? user.username : 'Admin'
+      };
+
+      displayBookingData(fallbackData);
+    }
+
+    function displayBookingData(booking) {
+      // Update room image
+      if (booking.room_image) {
+        document.getElementById("roomImg").src = booking.room_image;
+      }
+
+      // Update room name
+      if (booking.room_name) {
+        document.getElementById("roomName").textContent = booking.room_name;
+      }
+
+      // Update room number (or keep default)
+      const roomNumber = document.getElementById("roomNumber");
+      if (booking.room_number) {
+        roomNumber.textContent = booking.room_number;
+      }
+
+      // Update user name
+      if (booking.username) {
+        document.getElementById("name").textContent = booking.username;
+      }
+
+      // Update booking time
+      if (booking.booking_date && booking.start_time && booking.end_time) {
+        const timeDisplay = `${booking.booking_date}, ${booking.start_time} - ${booking.end_time}`;
+        document.getElementById("time").textContent = timeDisplay;
+      } else if (booking.booking_date) {
+        document.getElementById("time").textContent = booking.booking_date;
+      }
+
+      // Update access code
+      if (booking.access_code) {
+        document.getElementById("code").textContent = booking.access_code;
+      }
+    }
+
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', loadBookingData);
+  </script>
+</body>
+</html>

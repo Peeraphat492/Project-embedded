@@ -469,22 +469,40 @@ app.get('/api/admin/stats', (req, res) => {
   });
 });
 
+// Default route - redirect to login
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
+// 404 handler (must be last)
 app.use((req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 API available at http://localhost:${PORT}/api`);
+  console.log(`🌐 External access: http://[YOUR-IP]:${PORT}`);
   console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('🚨 Uncaught Exception:', err);
+  // Don't exit the process, just log the error
+});
+
+// Handle unhandled promise rejections  
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit the process, just log the error
 });
 
 // Graceful shutdown
@@ -499,3 +517,74 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
+
+// Memory management
+function forceGarbageCollection() {
+  if (global.gc) {
+    global.gc();
+    console.log('🗑️  Forced garbage collection completed');
+  }
+}
+
+// Memory monitoring
+function checkMemoryUsage() {
+  const usage = process.memoryUsage();
+  const heapUsedMB = Math.round(usage.heapUsed / 1024 / 1024);
+  const heapTotalMB = Math.round(usage.heapTotal / 1024 / 1024);
+  
+  console.log(`� [${new Date().toLocaleTimeString()}] Memory: ${heapUsedMB}MB / ${heapTotalMB}MB`);
+  
+  // Force GC if memory usage is high (>100MB)
+  if (heapUsedMB > 100) {
+    console.log('⚠️  High memory usage detected, forcing garbage collection...');
+    forceGarbageCollection();
+  }
+}
+
+// Graceful shutdown handler
+let isShuttingDown = false;
+
+function gracefulShutdown(signal) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  
+  console.log(`\n🛑 ${signal} received, shutting down gracefully...`);
+  
+  // Close database connection
+  db.close((err) => {
+    if (err) {
+      console.error('❌ Error closing database:', err);
+    } else {
+      console.log('✅ Database connection closed');
+    }
+    
+    console.log('� Server shutdown complete');
+    process.exit(0);
+  });
+  
+  // Force exit after 10 seconds if graceful shutdown fails
+  setTimeout(() => {
+    console.log('⚠️  Force exit after timeout');
+    process.exit(1);
+  }, 10000);
+}
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+// Health monitoring and memory cleanup
+setInterval(() => {
+  if (!isShuttingDown) {
+    checkMemoryUsage();
+  }
+}, 5 * 60 * 1000); // Every 5 minutes
+
+// Periodic garbage collection
+setInterval(() => {
+  if (!isShuttingDown) {
+    forceGarbageCollection();
+  }
+}, 30 * 60 * 1000); // Every 30 minutes
+
+// Export for Vercel
+module.exports = app;
