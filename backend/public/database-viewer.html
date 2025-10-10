@@ -112,6 +112,14 @@
         Checking server status...
     </div>
 
+    <!-- Auto Refresh Controls -->
+    <div class="container">
+        <h2>🔄 Auto Refresh</h2>
+        <button onclick="toggleAutoRefresh()" id="autoRefreshBtn">▶️ Start Auto Refresh (10s)</button>
+        <button onclick="loadAllData()" class="refresh-btn">🔄 Refresh All Now</button>
+        <span id="autoRefreshStatus" style="margin-left: 10px; color: #666;"></span>
+    </div>
+
     <!-- Users Section -->
     <div class="container">
         <div class="data-section">
@@ -161,12 +169,39 @@
 
     <script>
         const API_BASE_URL = 'http://localhost:3000/api';
+        let autoRefreshInterval = null;
+        let isAutoRefreshActive = false;
 
         // Check server status on load
         window.addEventListener('DOMContentLoaded', () => {
             checkServerStatus();
             loadAllData();
         });
+
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('autoRefreshBtn');
+            const status = document.getElementById('autoRefreshStatus');
+            
+            if (!isAutoRefreshActive) {
+                // Start auto refresh
+                autoRefreshInterval = setInterval(() => {
+                    loadAllData();
+                    status.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+                }, 10000); // 10 seconds
+                
+                btn.textContent = '⏸️ Stop Auto Refresh';
+                btn.style.backgroundColor = '#dc3545';
+                isAutoRefreshActive = true;
+                status.textContent = 'Auto refresh started...';
+            } else {
+                // Stop auto refresh
+                clearInterval(autoRefreshInterval);
+                btn.textContent = '▶️ Start Auto Refresh (10s)';
+                btn.style.backgroundColor = '#28a745';
+                isAutoRefreshActive = false;
+                status.textContent = 'Auto refresh stopped';
+            }
+        }
 
         async function checkServerStatus() {
             const statusEl = document.getElementById('serverStatus');
@@ -237,11 +272,17 @@
 
         async function loadUsers() {
             try {
-                // Since users endpoint might be protected, we'll show a message
+                // Try to load users data
+                const data = await makeRequest('/users/all');
+                if (data && data.length > 0) {
+                    displayTable(data, 'usersData', ['ID', 'Username', 'Email', 'Role', 'Created_at']);
+                } else {
+                    const container = document.getElementById('usersData');
+                    container.innerHTML = '<p class="success">Default users: admin/1234. Register new users to see them here!</p>';
+                }
+            } catch (error) {
                 const container = document.getElementById('usersData');
                 container.innerHTML = '<p class="success">Users data is protected for security. Default user: admin/1234</p>';
-            } catch (error) {
-                document.getElementById('usersData').innerHTML = `<p class="error">Error: ${error.message}</p>`;
             }
         }
 
@@ -256,10 +297,37 @@
 
         async function loadAllBookings() {
             try {
-                const data = await makeRequest('/admin/bookings');
-                displayTable(data, 'bookingsData', ['ID', 'Room_name', 'Username', 'Booking_date', 'Start_time', 'End_time', 'Access_code', 'Status', 'Created_at']);
+                // Try to load bookings from API
+                const data = await makeRequest('/bookings/all');
+                if (data && data.length > 0) {
+                    displayTable(data, 'bookingsData', ['ID', 'Room_Name', 'User_Name', 'Booking_Date', 'Start_Time', 'End_Time', 'Access_Code', 'Status', 'Created_at']);
+                } else {
+                    document.getElementById('bookingsData').innerHTML = '<p class="success">No bookings found. Create a booking to see data here!</p>';
+                }
             } catch (error) {
-                document.getElementById('bookingsData').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+                // Fallback: try to get booking data from localStorage
+                const bookingData = localStorage.getItem('bookingResult');
+                if (bookingData) {
+                    try {
+                        const booking = JSON.parse(bookingData);
+                        const mockBookings = [{
+                            id: booking.id || 'N/A',
+                            room_name: booking.room_name || 'N/A',
+                            user_name: booking.username || 'Current User',
+                            booking_date: booking.booking_date || 'N/A',
+                            start_time: booking.start_time || 'N/A',
+                            end_time: booking.end_time || 'N/A',
+                            access_code: booking.access_code || 'N/A',
+                            status: 'confirmed',
+                            created_at: new Date().toISOString()
+                        }];
+                        displayTable(mockBookings, 'bookingsData', ['ID', 'Room_Name', 'User_Name', 'Booking_Date', 'Start_Time', 'End_Time', 'Access_Code', 'Status', 'Created_at']);
+                    } catch (parseError) {
+                        document.getElementById('bookingsData').innerHTML = `<p class="error">Error loading bookings: ${error.message}</p>`;
+                    }
+                } else {
+                    document.getElementById('bookingsData').innerHTML = `<p class="error">Error: ${error.message}. No cached booking data found.</p>`;
+                }
             }
         }
 
@@ -268,11 +336,26 @@
                 const rooms = await makeRequest('/rooms');
                 const health = await makeRequest('/health');
                 
+                // Try to get booking count
+                let totalBookings = 0;
+                try {
+                    const bookings = await makeRequest('/bookings/all');
+                    totalBookings = bookings ? bookings.length : 0;
+                } catch (e) {
+                    // Check localStorage for recent bookings
+                    const recentBooking = localStorage.getItem('bookingResult');
+                    if (recentBooking) {
+                        totalBookings = 1; // At least one booking exists
+                    }
+                }
+                
                 const stats = {
                     total_rooms: rooms.length,
                     available_rooms: rooms.filter(r => r.status === 'available').length,
+                    total_bookings: totalBookings,
                     server_status: health.status,
                     database_status: health.database,
+                    last_updated: new Date().toLocaleString(),
                     timestamp: health.timestamp
                 };
                 

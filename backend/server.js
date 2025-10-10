@@ -365,6 +365,54 @@ app.delete('/api/bookings/:id', authenticateToken, (req, res) => {
   );
 });
 
+// Get all bookings (admin/debug endpoint)
+app.get('/api/bookings/all', (req, res) => {
+  db.all(
+    `SELECT 
+      b.id,
+      b.room_id,
+      r.name as room_name,
+      b.user_id,
+      u.username as user_name,
+      b.booking_date,
+      b.start_time,
+      b.end_time,
+      b.access_code,
+      b.status,
+      b.created_at
+    FROM bookings b
+    LEFT JOIN rooms r ON b.room_id = r.id
+    LEFT JOIN users u ON b.user_id = u.id
+    ORDER BY b.created_at DESC`,
+    (err, bookings) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(bookings);
+    }
+  );
+});
+
+// Get all users (admin/debug endpoint)
+app.get('/api/users/all', (req, res) => {
+  db.all(
+    `SELECT 
+      id,
+      username,
+      email,
+      'user' as role,
+      created_at
+    FROM users
+    ORDER BY created_at DESC`,
+    (err, users) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json(users);
+    }
+  );
+});
+
 // IoT device endpoints (for ESP32 integration)
 app.get('/api/device/settings', (req, res) => {
   // Return current time control settings
