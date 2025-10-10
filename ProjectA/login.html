@@ -83,6 +83,14 @@
     .login-container button:hover {
       background-color: #0284c7;
     }
+
+    .clear-btn {
+      background-color: #dc3545 !important;
+    }
+
+    .clear-btn:hover {
+      background-color: #c82333 !important;
+    }
   </style>
 </head>
 <body>
@@ -99,9 +107,9 @@
       </div>
       <button type="submit">Login</button>
     </form>
-    node server.js    
+    
     <!-- Debug button -->
-    <button onclick="clearLoginData()" style="margin-top: 10px; background-color: #dc3545; font-size: 12px; padding: 8px;">Clear Login Data</button>
+    <button onclick="clearLoginData()" class="clear-btn" style="margin-top: 10px;">Clear Login Data</button>
   </div>
 
   <script>
