@@ -12,7 +12,7 @@
       display: flex;
       justify-content: center;
     }
-
+ 
     .container {
       width: 100%;
       max-width: 450px;
@@ -21,7 +21,7 @@
       display: flex;
       flex-direction: column;
     }
-
+ 
     /* Header */
     .header {
       display: flex;
@@ -30,7 +30,7 @@
       border-bottom: 1px solid #ddd;
       background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
     }
-
+ 
     .header button {
       background-color: transparent;   /* ไม่มีพื้นหลัง */
       color: #0284c7;                 /* สีลูกศร */
@@ -46,13 +46,13 @@
       justify-content: center;
       transition: border-color 0.2s, transform 0.2s, color 0.2s;
     }
-
+ 
     .header button:hover {
       border-color: #0285c7b4;        /* เปลี่ยนสีขอบเมื่อ hover */
       color: #0285c7b4;               /* เปลี่ยนสีลูกศรเมื่อ hover */
       transform: scale(1.1);          /* ขยายเล็กน้อย */
     }
-
+ 
     .header h2 {
       margin: 0;
       font-size: 18px;
@@ -60,25 +60,25 @@
       flex-grow: 1;
       text-align: center;
     }
-
+ 
     /* Times Grid */
     .times {
       padding: 20px;
       flex-grow: 1;
     }
-
+ 
     .times h3 {
       margin-bottom: 15px;
       font-size: 16px;
       font-weight: bold;
     }
-
+ 
     .time-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-
+ 
     .time-slot {
       border: 1px solid #ddd;
       border-radius: 8px;
@@ -89,28 +89,28 @@
       background: #fff;
       transition: all 0.2s;
     }
-
+ 
     .time-slot:hover {
       background: #f1f5f9;
     }
-
+ 
     .time-slot.selected {
       border: 2px solid #0ea5e9;
       background: #e0f2fe;
       font-weight: bold;
     }
-
+ 
     .time-slot:active {
       transform: scale(0.95); /* ลดขนาดเล็กลงเล็กน้อยเมื่อคลิก */
       transition: transform 0.1s ease-in-out; /* เพิ่มการเปลี่ยนแปลงแบบ smooth */
     }
-
+ 
     /* Footer */
     .footer {
       padding: 20px;
       border-top: 1px solid #ddd;
     }
-
+ 
     .footer button {
       width: 100%;
       padding: 12px;
@@ -123,7 +123,7 @@
       cursor: pointer;
       transition: background 0.2s, transform 0.2s;
     }
-
+ 
     .footer button:hover {
       background-color: #0284c7;
       transform: scale(1.02);
@@ -137,31 +137,31 @@
       <button onclick="window.location.href='rooms.html'">←</button>
       <h2>Select Time</h2>
     </div>
-
-    <!-- Time Selection -->
+ 
+    
     <div class="times">
       <h3>Choose Time</h3>
       <div class="time-grid">
         <!-- Time slots will be loaded dynamically by JavaScript -->
       </div>
     </div>
-
+ 
     <!-- Footer -->
     <div class="footer">
       <button onclick="continueBooking()">Continue</button>
     </div>
   </div>
-
+ 
   <script>
     // API configuration
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://localhost:3000/api' 
+      ? 'http://localhost:3000/api'
       : `http://${window.location.hostname}:3000/api`;
-
+ 
     let selectedRoom = null;
     let selectedTime = null;
     let availableSlots = [];
-
+ 
     // Utility functions
     const utils = {
       isLoggedIn() {
@@ -171,7 +171,7 @@
         return date.toISOString().split('T')[0];
       }
     };
-
+ 
     // Default time slots (fallback)
     const defaultTimeSlots = [
       { start: '08:00', end: '09:00' },
@@ -191,7 +191,7 @@
       { start: '22:00', end: '23:00' },
       { start: '23:00', end: '00:00' }
     ];
-
+ 
     // Load selected room data
     function loadRoomData() {
       // Check authentication first
@@ -201,7 +201,7 @@
         window.location.href = "login.html";
         return false;
       }
-
+ 
       const roomData = localStorage.getItem("selectedRoom");
       if (roomData) {
         selectedRoom = JSON.parse(roomData);
@@ -213,7 +213,7 @@
           image_url: localStorage.getItem("roomImg")
         };
       }
-
+ 
       if (!selectedRoom) {
         alert('ไม่พบข้อมูลห้องที่เลือก กรุณาเลือกห้องใหม่');
         window.location.href = "rooms.html";
@@ -222,7 +222,7 @@
       console.log('Selected room:', selectedRoom);
       return true;
     }
-
+ 
     // Load available time slots
     async function loadAvailableSlots() {
       try {
@@ -246,14 +246,14 @@
       
       updateTimeSlots();
     }
-
+ 
     function updateTimeSlots() {
       const timeGrid = document.querySelector('.time-grid');
       if (!timeGrid) return;
-
+ 
       // Clear existing slots
       timeGrid.innerHTML = '';
-
+ 
       // Create time slots based on availability
       availableSlots.forEach(slot => {
         const slotElement = document.createElement('div');
@@ -262,57 +262,57 @@
         slotElement.onclick = () => selectTime(slotElement, slot);
         timeGrid.appendChild(slotElement);
       });
-
+ 
       if (availableSlots.length === 0) {
         timeGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666;">ไม่มีช่วงเวลาว่างสำหรับวันนี้</p>';
       }
     }
-
+ 
     function selectTime(slot, timeData) {
       if (selectedTime) {
         selectedTime.classList.remove("selected");
       }
       slot.classList.add("selected");
       selectedTime = slot;
-
+ 
       // Store selected time data
       const now = new Date();
       const day = now.getDate();
       const month = now.toLocaleString('en-US', { month: 'long' });
       const year = now.getFullYear();
-
+ 
       const formattedDateTime = `${day} ${month} ${year}, ${timeData.start} - ${timeData.end}`;
       localStorage.setItem("bookingDateTime", formattedDateTime);
       localStorage.setItem("selectedTimeSlot", JSON.stringify(timeData));
       
       console.log('Selected time:', formattedDateTime);
     }
-
+ 
     async function continueBooking() {
       if (!selectedTime) {
         alert("⚠️ กรุณาเลือกเวลาที่ต้องการ");
         return;
       }
-
+ 
       try {
         // Get booking data
         const timeSlot = JSON.parse(localStorage.getItem("selectedTimeSlot"));
         const today = new Date();
         const dateStr = utils.formatDate(today);
-
+ 
         const bookingData = {
           room_id: parseInt(selectedRoom.id),
           booking_date: dateStr,
           start_time: timeSlot.start,
           end_time: timeSlot.end
         };
-
+ 
         // Show loading
         const continueBtn = document.querySelector('.footer button');
         const originalText = continueBtn.textContent;
         continueBtn.textContent = 'กำลังจอง...';
         continueBtn.disabled = true;
-
+ 
         // Try to create booking via backend
         let bookingSuccess = false;
         try {
@@ -320,14 +320,14 @@
           if (!token) {
             throw new Error('ไม่พบ token กรุณาล็อกอินใหม่');
           }
-
+ 
           // Check if server is running first
           try {
             await fetch(`${API_BASE_URL}/health`);
           } catch (healthError) {
             throw new Error('ไม่สามารถเชื่อมต่อกับ server ได้ กรุณาตรวจสอบว่า server ทำงานอยู่');
           }
-
+ 
           const response = await fetch(`${API_BASE_URL}/bookings`, {
             method: 'POST',
             headers: {
@@ -379,7 +379,7 @@
         continueBtn.disabled = false;
       }
     }
-
+ 
     // Initialize page
     window.addEventListener('DOMContentLoaded', () => {
       const roomLoaded = loadRoomData();
@@ -390,3 +390,4 @@
   </script>
 </body>
 </html>
+ 

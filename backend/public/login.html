@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Room Reservation - Login</title>
-  <!-- เพิ่ม Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+  
   <style>
     * {
       margin: 0;
@@ -14,51 +16,109 @@
       box-sizing: border-box;
       font-family: Arial, sans-serif;
     }
-
+ 
     body {
-      height: 100vh;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #edebeb;
+  }
+    .wrapper {
       display: flex;
+      width: 850px;
+      height: 500px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #d8e7ff, #e7e0f9 ,#e1e9fc);
+    }
+ 
+    /* ฝั่งซ้าย */
+    .left-side {
+      flex: 1.1;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(to bottom, #d9d9f5, #e6f5ff);
-    }
-
-    .login-container {
-      background: #fff;
-      padding: 40px 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       text-align: center;
-      width: 350px;
+      padding: 20px;
+      color: #696666;
     }
-
-    .login-container h1 {
+ 
+    .left-side h1 {
+      font-family: Impact, sans-serif; /* ฟอนต์หัวข้อ */
+      font-size: 40px; /* ขนาดใหญ่ขึ้น */
+      margin-bottom: 15px;
+      letter-spacing: 1.5px;
+      line-height: 1.2;
+    }
+ 
+    .left-side p {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #b9b7b7;
+      margin-bottom: 12px;
+      font-family: Arial, sans-serif; /* ฟอนต์เดิมสำหรับข้อความ */
+    }
+ 
+    .left-side .description {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #7b7a7acc;
+      max-width: 250px;
+      font-family: Arial, sans-serif; /* ฟอนต์เดิมสำหรับข้อความ */
+    }
+ 
+    /* ฝั่งขวา */
+    .right-side {
+      flex: 1.9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 50px;
+    }
+ 
+    /* กล่องข้างใน */
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      background: #ffffff;
+      padding: 30px 30px 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 12px rgba(104, 96, 104, 0.416);
+      text-align: center;
+    }
+ 
+    .login-box h2 {
       font-family: Impact, sans-serif;
-      font-size: 22px;
+      font-size: 25px;
       font-weight: bold;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       color: #000;
     }
-
+ 
     .input-box {
       position: relative;
       margin-bottom: 18px;
+      text-align: left;
     }
-
+ 
     .input-box input {
       width: 100%;
-      padding: 12px 12px 12px 40px; /* เว้นที่ด้านซ้ายไว้สำหรับไอคอน */
+      padding: 12px 12px 12px 40px;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 15px;
       outline: none;
+      background-color: #fdfdfd;
     }
-
+ 
     .input-box input:focus {
       border-color: #0ea5e9;
       box-shadow: 0 0 5px #0ea5e9;
+      background-color: #fff;
     }
-
+ 
     .input-box i {
       position: absolute;
       top: 50%;
@@ -67,218 +127,188 @@
       color: #66666687;
       font-size: 16px;
     }
-
-    .login-container button {
+ 
+    button {
       width: 100%;
       padding: 12px;
       border: none;
       border-radius: 8px;
-      background-color: #0ea5e9;
+      background-color: #48a3f3;
       color: white;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s;
     }
-
-    .login-container button:hover {
-      background-color: #0284c7;
+ 
+    button:hover {
+      background-color: #1089c6;
     }
-
+ 
     .clear-btn {
-      background-color: #dc3545 !important;
+      background-color: #ea2e2e !important;
+      margin-top: 10px;
     }
-
+ 
     .clear-btn:hover {
-      background-color: #c82333 !important;
+      background-color: #e43c90f1 !important;
+    }
+ 
+    @media (max-width: 768px) {
+      .wrapper {
+        flex-direction: column;
+        width: 90%;
+        height: auto;
+      }
+      .left-side {
+        display: none;
+      }
+      .right-side {
+        padding: 30px;
+      }
     }
   </style>
 </head>
+ 
 <body>
-  <div class="login-container">
-    <h1>SMART ROOM<br>RESERVATION</h1>
-    <form id="loginForm">
-      <div class="input-box">
-        <i class="fa-solid fa-user"></i>
-        <input type="text" id="username" placeholder="Username" required>
+  <div class="wrapper">
+    <!-- ฝั่งซ้าย -->
+    <div class="left-side">
+       <h1>SMART ROOM<br />RESERVATION</h1>
+      <p class="description">
+        A simple and efficient way to manage and book your smart rooms.
+        Real-time updates, secure access, and modern design for every use.
+      </p>
+    </div>
+ 
+    <!-- ฝั่งขวา -->
+    <div class="right-side">
+      <div class="login-box">
+        <h2>Sign In</h2>
+        <form id="loginForm">
+          <div class="input-box">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="username" placeholder="Username" required />
+          </div>
+          <div class="input-box">
+            <i class="fa-solid fa-lock"></i>
+            <input
+              type="password"
+              id="password"
+              placeholder="Password"
+              required
+            />
+          </div>
+          <button type="submit">Login</button>
+        </form>
+        <button onclick="clearLoginData()" class="clear-btn">
+          Clear Login Data
+        </button>
       </div>
-      <div class="input-box">
-        <i class="fa-solid fa-lock"></i>
-        <input type="password" id="password" placeholder="Password" required>
-      </div>
-      <button type="submit">Login</button>
-    </form>
-    
-    <!-- Debug button -->
-    <button onclick="clearLoginData()" class="clear-btn" style="margin-top: 10px;">Clear Login Data</button>
+    </div>
   </div>
-
+ 
   <script>
-    // Simple API configuration
-    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://localhost:3000/api' 
-      : `http://${window.location.hostname}:3000/api`;
-
-    // Simple utility functions
+    const API_BASE_URL =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+        ? "http://localhost:3000/api"
+        : `http://${window.location.hostname}:3000/api`;
+ 
     const utils = {
       isLoggedIn() {
-        return !!localStorage.getItem('token');
+        return !!localStorage.getItem("token");
       },
       getCurrentUser() {
-        const userStr = localStorage.getItem('user');
+        const userStr = localStorage.getItem("user");
         return userStr ? JSON.parse(userStr) : null;
-      }
+      },
     };
-
-    // Simple API service
+ 
     const api = {
       async login(username, password) {
         try {
           const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
           });
-          
+ 
           let data;
           try {
             data = await response.json();
-          } catch (jsonError) {
-            throw new Error('Server response is not valid JSON');
+          } catch {
+            throw new Error("Server response is not valid JSON");
           }
-          
+ 
           if (!response.ok) {
-            throw new Error(data.error || 'Login failed');
+            throw new Error(data.error || "Login failed");
           }
-          
+ 
           return data;
         } catch (error) {
-          // Check if it's a network error
-          if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('ไม่สามารถเชื่อมต่อกับ server ได้');
+          if (error.name === "TypeError" && error.message.includes("fetch")) {
+            throw new Error("ไม่สามารถเชื่อมต่อกับ server ได้");
           }
-          
-          // Check if it's a token error
-          if (error.message.includes('token') || error.message.includes('unauthorized')) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+          if (
+            error.message.includes("token") ||
+            error.message.includes("unauthorized")
+          ) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
           }
-          
-          // Fallback to simple login if backend is not available
-          if (username === 'admin' && password === '1234') {
+          if (username === "admin" && password === "1234") {
             return {
               success: true,
-              token: 'mock-token',
-              user: { id: 1, username: 'admin' }
+              token: "mock-token",
+              user: { id: 1, username: "admin" },
             };
           }
           throw error;
         }
-      }
+      },
     };
-
-    document.getElementById("loginForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (username === "" || password === "") {
-        alert("⚠️ กรุณากรอก Username และ Password");
-        return;
-      }
-
-      try {
-        // Show loading state
+ 
+    document
+      .getElementById("loginForm")
+      .addEventListener("submit", async function (e) {
+        e.preventDefault();
+ 
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+ 
+        if (username === "" || password === "") {
+          alert("⚠️ กรุณากรอก Username และ Password");
+          return;
+        }
+ 
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'กำลังเข้าสู่ระบบ...';
+        submitBtn.textContent = "กำลังเข้าสู่ระบบ...";
         submitBtn.disabled = true;
-
-        // Call API (with fallback)
-        const result = await api.login(username, password);
-        
-        if (result.success) {
-          // Store login data
-          localStorage.setItem('token', result.token);
-          localStorage.setItem('user', JSON.stringify(result.user));
-          
-          alert(`✅ เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ ${result.user.username}`);
-          window.location.href = "rooms.html";
+ 
+        try {
+          const result = await api.login(username, password);
+          if (result.success) {
+            localStorage.setItem("token", result.token);
+            localStorage.setItem("user", JSON.stringify(result.user));
+ 
+            alert(`✅ เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ ${result.user.username}`);
+            window.location.href = "rooms.html";
+          }
+        } catch (error) {
+          alert(`❌ เข้าสู่ระบบไม่สำเร็จ: ${error.message}`);
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
         }
-      } catch (error) {
-        alert(`❌ เข้าสู่ระบบไม่สำเร็จ: ${error.message}`);
-        
-        // Reset button state
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        submitBtn.textContent = 'Login';
-        submitBtn.disabled = false;
-      }
-    });
-
-    // Check if already logged in
-    console.log('Current token:', localStorage.getItem('token'));
-    console.log('Is logged in:', utils.isLoggedIn());
-    
-    if (utils.isLoggedIn()) {
-      console.log('Already logged in, redirecting...');
-      // Give option to stay on login page
-      if (confirm('คุณล็อกอินอยู่แล้ว ต้องการไปหน้าเลือกห้องไหม?')) {
-        window.location.href = "rooms.html";
-      } else {
-        // Clear login data to stay on login page
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        console.log('Cleared login data');
-      }
-    }
-    
-    // Function to clear login data
+      });
+ 
     function clearLoginData() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      localStorage.removeItem('selectedRoom');
-      localStorage.removeItem('roomName');
-      localStorage.removeItem('roomImg');
-      localStorage.removeItem('roomId');
-      localStorage.removeItem('bookingResult');
-      localStorage.removeItem('bookingDateTime');
-      localStorage.removeItem('selectedTimeSlot');
-      alert('ล้างข้อมูลเรียบร้อยแล้ว!');
+      localStorage.clear();
+      alert("ล้างข้อมูลเรียบร้อยแล้ว!");
       location.reload();
     }
-
-    // Function to validate token
-    async function validateToken() {
-      const token = localStorage.getItem('token');
-      if (!token || token === 'mock-token') {
-        return false;
-      }
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/health`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        return response.ok;
-      } catch (error) {
-        return false;
-      }
-    }
-
-    // Auto-clear invalid tokens
-    window.addEventListener('load', async () => {
-      if (utils.isLoggedIn()) {
-        const isValid = await validateToken();
-        if (!isValid) {
-          console.log('Token invalid, clearing...');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        }
-      }
-    });
   </script>
 </body>
 </html>
+ 
