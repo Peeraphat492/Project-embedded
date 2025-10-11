@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -11,9 +12,12 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://peeraphat492.github.io', 'https://*.vercel.app'],
+  credentials: true
+}));
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -22,12 +26,13 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Database initialization
-const db = new sqlite3.Database('./database.db', (err) => {
+// Database initialization - สำหรับ Vercel ใช้ in-memory database
+const dbPath = process.env.NODE_ENV === 'production' ? ':memory:' : './database.db';
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err);
   } else {
-    console.log('Connected to SQLite database');
+    console.log(`Connected to SQLite database: ${dbPath}`);
     initializeDatabase();
   }
 });
@@ -633,6 +638,9 @@ setInterval(() => {
     forceGarbageCollection();
   }
 }, 30 * 60 * 1000); // Every 30 minutes
+
+// Export app for Vercel
+module.exports = app;
 
 // Export for Vercel
 module.exports = app;

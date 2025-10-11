@@ -8,7 +8,8 @@
     "dev": "cd backend && npm run dev",
     "install": "cd backend && npm install",
     "setup": "npm install && echo 'Setup completed! Now run: npm start'",
-    "build": "echo 'Frontend ready for GitHub Pages deployment'"
+    "build": "echo 'Frontend ready for GitHub Pages deployment'",
+    "vercel-build": "cd backend && npm install && npm run build"
   },
   "keywords": [
     "room-reservation",

@@ -1,0 +1,9 @@
+node_modules
+.git
+*.log
+.env
+backend/database.db
+database.db
+backend/node_modules/.cache
+.DS_Store
+Thumbs.db
