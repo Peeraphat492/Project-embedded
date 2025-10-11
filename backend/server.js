@@ -522,9 +522,40 @@ app.get('/api/admin/stats', (req, res) => {
   });
 });
 
-// Default route - redirect to login
+// Default route - serve index.html or redirect to login
 app.get('/', (req, res) => {
-  res.redirect('/login.html');
+  if (process.env.NODE_ENV === 'production') {
+    // In production (Vercel), serve static content
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
+  } else {
+    // In development, redirect to login
+    res.redirect('/login.html');
+  }
+});
+
+// Serve static HTML files for Vercel
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/rooms.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'rooms.html'));
+});
+
+app.get('/time.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'time.html'));
+});
+
+app.get('/summary.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'summary.html'));
+});
+
+app.get('/manual.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'manual.html'));
+});
+
+app.get('/database-viewer.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'database-viewer.html'));
 });
 
 // Error handling middleware
@@ -538,13 +569,15 @@ app.use((req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 API available at http://localhost:${PORT}/api`);
-  console.log(`🌐 External access: http://[YOUR-IP]:${PORT}`);
-  console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
-});
+// Start server (only in non-production environment)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📱 API available at http://localhost:${PORT}/api`);
+    console.log(`🌐 External access: http://[YOUR-IP]:${PORT}`);
+    console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
+  });
+}
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
