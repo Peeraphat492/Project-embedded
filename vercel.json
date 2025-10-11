@@ -4,6 +4,14 @@
     {
       "src": "backend/server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "backend/public/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -12,35 +20,8 @@
       "dest": "backend/server.js"
     },
     {
-      "src": "/login.html",
-      "dest": "backend/public/login.html"
-    },
-    {
-      "src": "/rooms.html",
-      "dest": "backend/public/rooms.html"
-    },
-    {
-      "src": "/time.html",
-      "dest": "backend/public/time.html"
-    },
-    {
-      "src": "/summary.html",
-      "dest": "backend/public/summary.html"
-    },
-    {
-      "src": "/manual.html",
-      "dest": "backend/public/manual.html"
-    },
-    {
-      "src": "/database-viewer.html",
-      "dest": "backend/public/database-viewer.html"
-    },
-    {
       "src": "/(.*)",
-      "dest": "index.html"
+      "dest": "backend/server.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
