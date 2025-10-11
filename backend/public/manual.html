@@ -3,117 +3,278 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MANUAL</title>
+  <title>Smart Room Control - Manual</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
   <style>
-    body {
+    * {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #ffffff; /* พื้นหลังด้านนอกเป็นสีขาว */
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh; /* ทำให้กรอบอยู่ตรงกลาง */
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      animation: moveGrid 20s linear infinite;
+    }
+
+    @keyframes moveGrid {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(10px, 10px); }
     }
 
     .container {
       width: 100%;
-      max-width: 450px; /* ขนาดเท่ากับหน้าอื่น */
-      background: linear-gradient(to bottom, #eef2ff, #f8fafc); /* ไล่สีด้านใน */
-      min-height: 100vh; /* กำหนดความสูงของกรอบ */
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      min-height: 600px;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* เพิ่มเงาให้กรอบดูโดดเด่น */
-      border-radius: 10px; /* เพิ่มความโค้งมนให้กรอบ */
-      overflow: hidden; /* ป้องกันการล้นของเนื้อหา */
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2), 
+                  0 1px 3px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Header */
     .header {
-      width: 100%;
-      max-width: 450px; /* ขนาดกรอบเท่ากับหน้าอื่น */
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
       text-align: center;
-      padding: 20px 0; /* เพิ่ม padding เพื่อให้กรอบใหญ่ขึ้น */
-      background: linear-gradient(to bottom, #e0e7ff, #f8fafc); /* ไล่สีเหมือนหน้าอื่น */
-      border-bottom: 1px solid #ddd;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* เพิ่มเงาให้เหมือนหน้าอื่น */
-      position: relative; /* ใช้สำหรับวางตำแหน่งลูกศรย้อนกลับ */
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      backdrop-filter: blur(10px);
     }
 
     .header h2 {
       margin: 0;
-      font-size: 20px; /* เพิ่มขนาดตัวอักษรให้ใหญ่ขึ้น */
-      font-weight: bold;
-      color: #333;
+      font-size: 24px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 1px;
     }
 
     .header button {
       position: absolute;
-      left: 15px; /* วางตำแหน่งลูกศรด้านซ้าย */
+      left: 20px;
       top: 50%;
       transform: translateY(-50%);
-      background-color: transparent; /* ไม่มีพื้นหลัง */
-      color: #0284c7; /* สีลูกศร */
-      border: 2px solid #0284c7; /* ขอบวงกลม */
-      font-size: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      font-size: 18px;
       cursor: pointer;
-      width: 35px;
-      height: 35px;
-      border-radius: 50%; /* ทำให้เป็นวงกลม */
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color 0.2s, transform 0.2s, color 0.2s;
-      outline: none; /* ป้องกันเส้นขอบเมื่อกด */
-    }
-
-    .header button:active {
-      transform: translateY(-50%) scale(0.95); /* ลดขนาดเล็กน้อยเมื่อกด */
+      transition: all 0.3s ease;
+      outline: none;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     }
 
     .header button:hover {
-      border-color: #0285c7b4; /* เปลี่ยนสีขอบเมื่อ hover */
-      color: #0285c7b4; /* เปลี่ยนสีลูกศรเมื่อ hover */
-      transform: translateY(-50%) scale(1.1); /* ขยายเล็กน้อยเมื่อ hover */
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
 
+    .header button:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    /* Content Area */
+    .content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 30px;
+      text-align: center;
+    }
+
+    .control-info {
+      margin-bottom: 40px;
+    }
+
+    .control-info h3 {
+      font-size: 20px;
+      color: #2d3748;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .control-info p {
+      color: #718096;
+      line-height: 1.6;
+      font-size: 14px;
+      max-width: 300px;
+    }
+
+    .device-status {
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .status-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+      color: #667eea;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    .status-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #4a5568;
+    }
     /* Footer */
     .footer {
       display: flex;
-      flex-direction: column; /* จัดเรียงปุ่มในแนวตั้ง */
-      align-items: center; /* จัดปุ่มให้อยู่ตรงกลาง */
-      justify-content: center; /* จัดปุ่มให้อยู่ตรงกลางในแนวตั้ง */
-      gap: 15px; /* เพิ่มระยะห่างระหว่างปุ่ม */
-      flex-grow: 1; /* ทำให้ footer ขยายเต็มพื้นที่ที่เหลือ */
-      margin-top: -50px; /* ขยับขึ้นด้านบนเล็กน้อย */
-      padding: 20px;
-      border-top: 1px solid #ddd;
+      flex-direction: column;
+      gap: 15px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.5);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
     }
 
     .footer button {
       width: 100%;
-      padding: 12px; /* ขนาดปุ่มเท่ากับหน้าอื่น */
+      padding: 15px;
       border: none;
-      border-radius: 8px; /* ขอบโค้งมนเหมือนหน้าอื่น */
-      background-color: #0ea5e9;
+      border-radius: 12px;
       color: white;
-      font-size: 16px; /* ขนาดตัวอักษรเท่ากับหน้าอื่น */
-      font-weight: bold;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-      margin-top: 10px; /* เพิ่มระยะห่างระหว่างปุ่ม */
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .footer button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .footer button:hover::before {
+      left: 100%;
     }
 
     .footer button:hover {
-      background-color: #0284c7;
-      transform: scale(1.02);
+      transform: translateY(-2px);
     }
 
-    .footer button:nth-child(2) {
-      background-color: #e11d48; /* สีแดงสำหรับปุ่มปิดไฟ */
+    .footer button:active {
+      transform: translateY(0);
     }
 
-    .footer button:nth-child(2):hover {
-      background-color: #be123c; /* สีแดงเข้มเมื่อ hover */
+    .btn-on {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-on:hover {
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn-off {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-off:hover {
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .container {
+        max-width: 100%;
+        margin: 10px;
+        min-height: calc(100vh - 20px);
+      }
+      
+      .header {
+        padding: 20px 15px;
+      }
+      
+      .header h2 {
+        font-size: 20px;
+      }
+      
+      .content {
+        padding: 30px 20px;
+      }
+      
+      .footer {
+        padding: 20px;
+      }
+      
+      .footer button {
+        padding: 12px;
+        font-size: 15px;
+      }
     }
   </style>
 </head>
@@ -121,31 +282,139 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <button onclick="goBack()">←</button>
-      <h2>MANUAL</h2>
+      <button onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <h2>SMART CONTROL</h2>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="control-info">
+        <h3>Room Control Center</h3>
+        <p>ควบคุมอุปกรณ์ในห้องของคุณได้อย่างง่ายดาย พร้อมระบบตอบสนองแบบเรียลไทม์</p>
+      </div>
+
+      <div class="device-status">
+        <div class="status-icon">
+          <i class="fas fa-lightbulb" id="lightIcon"></i>
+        </div>
+        <div class="status-text" id="statusText">Ready to Control</div>
+      </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-      <button onclick="turnOnLight()">เปิดไฟ</button>
-      <button onclick="turnOffLight()">ปิดไฟ</button>
+      <button class="btn-on" onclick="turnOnLight()">
+        <i class="fas fa-power-off"></i>
+        เปิดไฟ
+      </button>
+      <button class="btn-off" onclick="turnOffLight()">
+        <i class="fas fa-times-circle"></i>
+        ปิดไฟ
+      </button>
     </div>
   </div>
 
   <script>
+    let lightStatus = false;
+
     function turnOnLight() {
-      alert("ไฟถูกเปิดแล้ว!"); // แสดงข้อความเมื่อกดปุ่ม
-      // คุณสามารถเพิ่มโค้ดสำหรับการควบคุมไฟจริง เช่น การส่งคำสั่งไปยังอุปกรณ์
+      lightStatus = true;
+      updateUI();
+      
+      // Show success notification
+      showNotification("ไฟถูกเปิดแล้ว! 💡", "success");
+      
+      // Add visual feedback
+      const btn = event.target;
+      btn.style.transform = "scale(0.95)";
+      setTimeout(() => {
+        btn.style.transform = "";
+      }, 150);
     }
 
     function turnOffLight() {
-      alert("ไฟถูกปิดแล้ว!"); // แสดงข้อความเมื่อกดปุ่ม
-      // คุณสามารถเพิ่มโค้ดสำหรับการควบคุมไฟจริง เช่น การส่งคำสั่งไปยังอุปกรณ์
+      lightStatus = false;
+      updateUI();
+      
+      // Show success notification
+      showNotification("ไฟถูกปิดแล้ว! 🌙", "info");
+      
+      // Add visual feedback
+      const btn = event.target;
+      btn.style.transform = "scale(0.95)";
+      setTimeout(() => {
+        btn.style.transform = "";
+      }, 150);
+    }
+
+    function updateUI() {
+      const lightIcon = document.getElementById('lightIcon');
+      const statusText = document.getElementById('statusText');
+      
+      if (lightStatus) {
+        lightIcon.style.color = '#fbbf24';
+        lightIcon.style.textShadow = '0 0 20px #fbbf24';
+        statusText.textContent = 'Light is ON';
+        statusText.style.color = '#059669';
+      } else {
+        lightIcon.style.color = '#6b7280';
+        lightIcon.style.textShadow = 'none';
+        statusText.textContent = 'Light is OFF';
+        statusText.style.color = '#6b7280';
+      }
+    }
+
+    function showNotification(message, type) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 1000;
+        font-weight: 500;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+      `;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      // Animate in
+      setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+      
+      // Animate out and remove
+      setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
     }
 
     function goBack() {
-      window.history.back(); // ย้อนกลับไปยังหน้าก่อนหน้า
+      // Add transition effect
+      document.querySelector('.container').style.transform = 'translateX(-100%)';
+      document.querySelector('.container').style.opacity = '0';
+      
+      setTimeout(() => {
+        window.history.back();
+      }, 300);
     }
+
+    // Initialize UI
+    document.addEventListener('DOMContentLoaded', function() {
+      updateUI();
+    });
   </script>
 </body>
 </html>

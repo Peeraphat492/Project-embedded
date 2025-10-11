@@ -3,133 +3,368 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking Summary</title>
+  <title>Smart Room Booking - Summary</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
   <style>
-    body {
+    * {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #edebeb;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       justify-content: center;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      animation: moveGrid 20s linear infinite;
+    }
+
+    @keyframes moveGrid {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(10px, 10px); }
     }
 
     .container {
       width: 100%;
       max-width: 450px;
-      background: linear-gradient(to bottom, #eef2ff, #f8fafc);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
+      z-index: 1;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+      animation: fadeInUp 0.8s ease-out;
     }
 
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Header */
     .header {
       display: flex;
       align-items: center;
+      justify-content: center;
       padding: 15px;
-      border-bottom: 1px solid #ddd;
-      background: linear-gradient(to bottom, #e0e7ff, #f8fafc);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20px;
+      right: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
     }
 
     .header h2 {
       margin: 0;
-      font-size: 18px;
-      font-weight: bold;
-      flex-grow: 1;
-      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
+    /* Success Badge */
+    .success-badge {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 10px 20px 0;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      animation: fadeIn 0.8s ease-out 0.3s both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Reservation Section */
     .reservation {
-      padding: 20px;
-      background: #f1f5f9;
-      border-bottom: 1px solid #ddd;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      animation: fadeIn 0.8s ease-out 0.4s both;
     }
 
     .reservation h3 {
-      margin: 0 0 10px 0;
-      font-size: 16px;
-      font-weight: bold;
+      margin: 0 0 12px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #2d3748;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .room-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
-      background: #fff;
-      border-radius: 10px;
-      padding: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      gap: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .room-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .room-card:hover::before {
+      opacity: 1;
+    }
+
+    .room-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
     }
 
     .room-card img {
-      width: 100px;
-      height: 100px;
-      border-radius: 8px;
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
       object-fit: cover;
-      margin-right: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      position: relative;
+      z-index: 1;
     }
 
     .room-info {
       display: flex;
       flex-direction: column;
+      gap: 5px;
+      position: relative;
+      z-index: 1;
     }
 
     .room-info strong {
-      font-size: 15px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
     }
 
     .room-info span {
-      font-size: 13px;
-      color: #555;
+      font-size: 14px;
+      color: #718096;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
+    /* Details Section */
     .details {
-      padding: 20px;
+      padding: 18px 20px;
+      flex-grow: 1;
+      animation: fadeIn 0.8s ease-out 0.5s both;
     }
 
     .details h3 {
-      font-size: 16px;
+      font-size: 18px;
       margin-bottom: 15px;
-      font-weight: bold;
+      font-weight: 600;
+      color: #2d3748;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .detail-item {
-      margin-bottom: 15px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .detail-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .detail-item:hover::before {
+      opacity: 1;
+    }
+
+    .detail-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     }
 
     .detail-item label {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 13px;
-      color: #555;
-      margin-bottom: 3px;
+      color: #718096;
+      margin-bottom: 5px;
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
     }
 
     .detail-item span {
       font-size: 15px;
-      font-weight: bold;
+      font-weight: 600;
+      color: #2d3748;
+      position: relative;
+      z-index: 1;
     }
 
+    .access-code {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%) !important;
+      border: 2px solid rgba(102, 126, 234, 0.3) !important;
+    }
+
+    .access-code span {
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: #667eea;
+      letter-spacing: 2px;
+    }
+
+    /* Footer */
     .footer {
-      padding: 20px;
-      border-top: 1px solid #ddd;
+      padding: 18px 20px 80px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      position: relative;
+      animation: fadeIn 0.8s ease-out 0.6s both;
+    }
+
+    .footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20px;
+      right: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
     }
 
     .footer button {
       width: 100%;
-      padding: 12px;
+      padding: 15px;
       border: none;
-      border-radius: 8px;
-      background-color: #0ea5e9;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       font-size: 16px;
-      font-weight: bold;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .footer button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .footer button:hover::before {
+      left: 100%;
     }
 
     .footer button:hover {
-      background-color: #0284c7;
-      transform: scale(1.02);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
     }
 
+    .footer button:active {
+      transform: translateY(0);
+    }
+
+    /* Bottom Navigation */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -139,36 +374,93 @@
       max-width: 450px;
       display: flex;
       justify-content: space-around;
-      padding: 12px 0;
-      border-top: 1px solid #ddd;
-      background: #fff;
-      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+      padding: 15px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+      z-index: 100;
     }
 
     .nav-item {
       text-align: center;
-      font-size: 13px;
-      color: #555;
+      font-size: 12px;
+      color: #718096;
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 5px;
+      transition: all 0.3s ease;
+      padding: 5px;
+      border-radius: 8px;
+      min-width: 60px;
     }
 
-    .nav-item img {
-      width: 31px; /* ปรับขนาดไอคอนให้สมส่วน */
-      height: 31px;
-      margin-bottom: 5px;
+    .nav-item:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #667eea;
+      transform: scale(1.05);
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      transition: all 0.3s ease;
     }
 
     .nav-item.active {
-      font-weight: bold;
-      color: #0ea5e9;
+      font-weight: 600;
+      color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
     }
 
     .nav-item.disabled {
-      pointer-events: none; /* ปิดการคลิก */
-      color: #000; /* สีตัวหนังสือเป็นสีดำ */
+      pointer-events: none;
+      opacity: 0.5;
+      color: #cbd5e0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .container {
+        max-width: 100%;
+      }
+      
+      .header, .reservation, .details, .footer {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      
+      .header h2 {
+        font-size: 18px;
+      }
+      
+      .room-card {
+        padding: 12px;
+        gap: 12px;
+      }
+      
+      .room-card img {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .detail-item {
+        padding: 12px;
+      }
+      
+      .bottom-nav {
+        padding: 12px 0;
+      }
+      
+      .nav-item {
+        font-size: 11px;
+        min-width: 50px;
+      }
+      
+      .nav-item i {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
@@ -176,56 +468,86 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h2>Booking Summary</h2>
+      <h2>
+        <i class="fas fa-check-circle"></i>
+        Booking Summary
+      </h2>
+    </div>
+
+    <!-- Success Badge -->
+    <div class="success-badge">
+      <i class="fas fa-check"></i>
+      Booking Confirmed Successfully
     </div>
 
     <!-- Reservation Info -->
     <div class="reservation">
-      <h3>Smart Room Reservation</h3>
+      <h3>
+        <i class="fas fa-door-open"></i>
+        Smart Room Reservation
+      </h3>
       <div class="room-card">
         <img id="roomImg" src="https://i.imgur.com/Qb3l4ZB.jpg" alt="Room">
         <div class="room-info">
           <strong id="roomName">Condo Unit</strong>
-          <span id="roomNumber">Room 201</span>
+          <span id="roomNumber">
+            <i class="fas fa-map-marker-alt"></i>
+            Room 201
+          </span>
         </div>
       </div>
     </div>
 
     <!-- Booking Details -->
     <div class="details">
-      <h3>Booking Details</h3>
+      <h3>
+        <i class="fas fa-clipboard-list"></i>
+        Booking Details
+      </h3>
       <div class="detail-item">
-        <label>Name</label>
+        <label>
+          <i class="fas fa-user"></i>
+          Name
+        </label>
         <span id="name">Admin</span>
       </div>
       <div class="detail-item">
-        <label>Booking Time</label>
-        <span id="time"></span> <!-- จะแสดงวันที่และเวลาจริง -->
+        <label>
+          <i class="fas fa-clock"></i>
+          Booking Time
+        </label>
+        <span id="time"></span>
       </div>
-      <div class="detail-item">
-        <label>Access Code</label>
+      <div class="detail-item access-code">
+        <label>
+          <i class="fas fa-key"></i>
+          Access Code
+        </label>
         <span id="code">123456</span>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-      <button onclick="editBooking()">Back to Edit</button>
+      <button onclick="editBooking()">
+        <i class="fas fa-edit"></i>
+        Back to Edit
+      </button>
     </div>
   </div>
 
   <!-- Bottom Navigation -->
   <div class="bottom-nav">
     <div onclick="window.location.href='login.html'" class="nav-item">
-      <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" alt="Home Icon">
+      <i class="fas fa-home"></i>
       <span>Home</span>
     </div>
     <div onclick="window.location.href='manual.html'" class="nav-item">
-      <img src="https://i.postimg.cc/J0STQkfy/santa-claus.png" alt="Manual Icon">
+      <i class="fas fa-cog"></i>
       <span>Manual</span>
     </div>
     <div class="nav-item disabled">
-      <img src="https://i.postimg.cc/mkwTKTSH/vecteezy-profile-icon-design-vector-5544718-removebg-preview.png" alt="Profile Icon">
+      <i class="fas fa-user"></i>
       <span>Profile</span>
     </div>
   </div>

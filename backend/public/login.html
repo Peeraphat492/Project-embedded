@@ -14,9 +14,9 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
+ 
     body {
   height: 100vh;
   display: flex;
@@ -26,6 +26,7 @@
   }
     .wrapper {
       display: flex;
+<<<<<<< HEAD
       width: 850px;
       height: 500px;
       border-radius: 16px;
@@ -33,6 +34,57 @@
       background: linear-gradient(135deg, #d8e7ff, #e7e0f9 ,#e1e9fc);
     }
 
+=======
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      animation: moveGrid 20s linear infinite;
+    }
+
+    @keyframes moveGrid {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(10px, 10px); }
+    }
+
+    .wrapper {
+      display: flex;
+      width: 900px;
+      height: 550px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+      position: relative;
+      z-index: 1;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+ 
+>>>>>>> origin/main
     /* ฝั่งซ้าย */
     .left-side {
       flex: 1.1;
@@ -41,6 +93,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
+<<<<<<< HEAD
       padding: 20px;
       color: #696666;
     }
@@ -69,12 +122,77 @@
       font-family: Arial, sans-serif; /* ฟอนต์เดิมสำหรับข้อความ */
     }
 
+=======
+      padding: 40px 30px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-side::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+ 
+    .left-side h1 {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 10px rgba(255,255,255,0.3);
+      position: relative;
+      z-index: 2;
+      word-spacing: normal;
+      word-break: keep-all;
+      hyphens: none;
+      white-space: pre-line;
+    }
+ 
+    .left-side p {
+      font-size: 16px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 15px;
+      font-weight: 300;
+      position: relative;
+      z-index: 2;
+    }
+ 
+    .left-side .description {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.7);
+      max-width: 280px;
+      font-weight: 300;
+      position: relative;
+      z-index: 2;
+    }
+ 
+>>>>>>> origin/main
     /* ฝั่งขวา */
     .right-side {
       flex: 1.9;
       display: flex;
       justify-content: center;
       align-items: center;
+<<<<<<< HEAD
       padding: 40px 50px;
     }
 
@@ -95,57 +213,180 @@
       font-weight: bold;
       margin-bottom: 25px;
       color: #000;
+=======
+      padding: 50px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+ 
+    /* กล่องข้างใน */
+    .login-box {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 40px 35px 45px 35px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 
+                  0 1px 3px rgba(0, 0, 0, 0.1),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: slideInRight 0.8s ease-out;
     }
 
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+ 
+    .login-box h2 {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      color: #2d3748;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+>>>>>>> origin/main
+    }
+ 
     .input-box {
       position: relative;
+<<<<<<< HEAD
       margin-bottom: 18px;
+=======
+      margin-bottom: 25px;
+>>>>>>> origin/main
       text-align: left;
     }
 
+    .input-box label {
+      display: block;
+      margin-bottom: 8px;
+      color: #4a5568;
+      font-weight: 500;
+      font-size: 14px;
+    }
+ 
     .input-box input {
       width: 100%;
+<<<<<<< HEAD
       padding: 12px 12px 12px 40px;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 15px;
       outline: none;
       background-color: #fdfdfd;
+=======
+      padding: 15px 15px 15px 45px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.3s ease;
+      color: #2d3748;
+>>>>>>> origin/main
     }
-
+ 
     .input-box input:focus {
+<<<<<<< HEAD
       border-color: #0ea5e9;
       box-shadow: 0 0 5px #0ea5e9;
       background-color: #fff;
+=======
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      background: #ffffff;
+      transform: translateY(-1px);
+>>>>>>> origin/main
     }
 
+    .input-box input::placeholder {
+      color: #a0aec0;
+      font-weight: 300;
+    }
+ 
     .input-box i {
       position: absolute;
       top: 50%;
-      left: 12px;
+      left: 15px;
       transform: translateY(-50%);
-      color: #66666687;
-      font-size: 16px;
+      color: #a0aec0;
+      font-size: 18px;
+      transition: color 0.3s ease;
     }
 
+<<<<<<< HEAD
+=======
+    .input-box input:focus + i {
+      color: #667eea;
+    }
+ 
+>>>>>>> origin/main
     button {
       width: 100%;
-      padding: 12px;
+      padding: 15px;
       border: none;
+<<<<<<< HEAD
       border-radius: 8px;
       background-color: #48a3f3;
+=======
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+>>>>>>> origin/main
       color: white;
       font-size: 16px;
-      font-weight: bold;
+      font-weight: 600;
       cursor: pointer;
+<<<<<<< HEAD
       transition: background 0.3s;
     }
 
     button:hover {
       background-color: #1089c6;
+=======
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+>>>>>>> origin/main
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+ 
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+ 
     .clear-btn {
+<<<<<<< HEAD
       background-color: #ea2e2e !important;
       margin-top: 10px;
     }
@@ -165,15 +406,118 @@
       }
       .right-side {
         padding: 30px;
+=======
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+      margin-top: 15px;
+      box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4) !important;
+    }
+ 
+    .clear-btn:hover {
+      box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6) !important;
+    }
+
+    /* Loading state */
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .loading {
+      position: relative;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: translateY(-50%) rotate(0deg); }
+      100% { transform: translateY(-50%) rotate(360deg); }
+    }
+ 
+    @media (max-width: 768px) {
+      .wrapper {
+        flex-direction: column;
+        width: 95%;
+        height: auto;
+        margin: 20px;
+      }
+      .left-side {
+        padding: 30px 20px;
+        min-height: 200px;
+      }
+      .left-side h1 {
+        font-size: 32px;
+        letter-spacing: 1px;
+      }
+      .right-side {
+        padding: 30px 20px;
+      }
+      .login-box {
+        padding: 30px 25px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .wrapper {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        margin: 0;
+      }
+      .left-side {
+        min-height: 150px;
+        padding: 20px;
+      }
+      .left-side h1 {
+        font-size: 24px;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+      }
+      .left-side .description {
+        font-size: 13px;
+        max-width: 250px;
+      }
+      .login-box {
+        padding: 25px 20px;
+      }
+      .input-box input {
+        padding: 12px 12px 12px 40px;
+        font-size: 14px;
+      }
+      .input-box i {
+        left: 12px;
+        font-size: 16px;
+      }
+      button {
+        padding: 12px;
+        font-size: 15px;
+>>>>>>> origin/main
       }
     }
   </style>
 </head>
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> origin/main
 <body>
   <div class="wrapper">
     <!-- ฝั่งซ้าย -->
     <div class="left-side">
+<<<<<<< HEAD
        <h1>SMART ROOM<br />RESERVATION</h1>
       <p class="description">
         A simple and efficient way to manage and book your smart rooms. 
@@ -181,12 +525,22 @@
       </p>
     </div>
 
+=======
+       <h1>SMART&nbsp;ROOM<br />RESERVATION</h1>
+      <p class="description">
+        A simple and efficient way to manage and book your smart rooms.
+        Real-time updates, secure access, and modern design for every use.
+      </p>
+    </div>
+ 
+>>>>>>> origin/main
     <!-- ฝั่งขวา -->
     <div class="right-side">
       <div class="login-box">
         <h2>Sign In</h2>
         <form id="loginForm">
           <div class="input-box">
+<<<<<<< HEAD
             <i class="fa-solid fa-user"></i>
             <input type="text" id="username" placeholder="Username" required />
           </div>
@@ -202,19 +556,44 @@
           <button type="submit">Login</button>
         </form>
         <button onclick="clearLoginData()" class="clear-btn">
+=======
+            <input type="text" id="username" placeholder="Enter your username" required />
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="input-box">
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              required
+            />
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <button type="submit">
+            <i class="fa-solid fa-sign-in-alt" style="margin-right: 8px;"></i>
+            Sign In
+          </button>
+        </form>
+        <button onclick="clearLoginData()" class="clear-btn">
+          <i class="fa-solid fa-trash" style="margin-right: 8px;"></i>
+>>>>>>> origin/main
           Clear Login Data
         </button>
       </div>
     </div>
   </div>
-
+ 
   <script>
     const API_BASE_URL =
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1"
         ? "http://localhost:3000/api"
         : `http://${window.location.hostname}:3000/api`;
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> origin/main
     const utils = {
       isLoggedIn() {
         return !!localStorage.getItem("token");
@@ -224,7 +603,11 @@
         return userStr ? JSON.parse(userStr) : null;
       },
     };
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> origin/main
     const api = {
       async login(username, password) {
         try {
@@ -233,18 +616,30 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
           });
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> origin/main
           let data;
           try {
             data = await response.json();
           } catch {
             throw new Error("Server response is not valid JSON");
           }
+<<<<<<< HEAD
 
           if (!response.ok) {
             throw new Error(data.error || "Login failed");
           }
 
+=======
+ 
+          if (!response.ok) {
+            throw new Error(data.error || "Login failed");
+          }
+ 
+>>>>>>> origin/main
           return data;
         } catch (error) {
           if (error.name === "TypeError" && error.message.includes("fetch")) {
@@ -268,41 +663,75 @@
         }
       },
     };
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> origin/main
     document
       .getElementById("loginForm")
       .addEventListener("submit", async function (e) {
         e.preventDefault();
+<<<<<<< HEAD
 
         const username = document.getElementById("username").value.trim();
         const password = document.getElementById("password").value.trim();
 
+=======
+ 
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+ 
+>>>>>>> origin/main
         if (username === "" || password === "") {
           alert("⚠️ กรุณากรอก Username และ Password");
           return;
         }
+<<<<<<< HEAD
 
         const submitBtn = e.target.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.textContent = "กำลังเข้าสู่ระบบ...";
         submitBtn.disabled = true;
 
+=======
+ 
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i>Signing In...';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+ 
+>>>>>>> origin/main
         try {
           const result = await api.login(username, password);
           if (result.success) {
             localStorage.setItem("token", result.token);
             localStorage.setItem("user", JSON.stringify(result.user));
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> origin/main
             alert(`✅ เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ ${result.user.username}`);
             window.location.href = "rooms.html";
           }
         } catch (error) {
           alert(`❌ เข้าสู่ระบบไม่สำเร็จ: ${error.message}`);
+<<<<<<< HEAD
           submitBtn.textContent = originalText;
           submitBtn.disabled = false;
         }
       });
 
+=======
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('loading');
+        }
+      });
+ 
+>>>>>>> origin/main
     function clearLoginData() {
       localStorage.clear();
       alert("ล้างข้อมูลเรียบร้อยแล้ว!");
@@ -311,3 +740,4 @@
   </script>
 </body>
 </html>
+ 
