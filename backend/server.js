@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -11,9 +12,12 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://peeraphat492.github.io', 'https://*.vercel.app'],
+  credentials: true
+}));
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -22,12 +26,13 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Database initialization
-const db = new sqlite3.Database('./database.db', (err) => {
+// Database initialization - สำหรับ Vercel ใช้ in-memory database
+const dbPath = process.env.NODE_ENV === 'production' ? ':memory:' : './database.db';
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err);
   } else {
-    console.log('Connected to SQLite database');
+    console.log(`Connected to SQLite database: ${dbPath}`);
     initializeDatabase();
   }
 });
@@ -517,9 +522,40 @@ app.get('/api/admin/stats', (req, res) => {
   });
 });
 
-// Default route - redirect to login
+// Default route - serve index.html or redirect to login
 app.get('/', (req, res) => {
-  res.redirect('/login.html');
+  if (process.env.NODE_ENV === 'production') {
+    // In production (Vercel), serve static content
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
+  } else {
+    // In development, redirect to login
+    res.redirect('/login.html');
+  }
+});
+
+// Serve static HTML files for Vercel
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/rooms.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'rooms.html'));
+});
+
+app.get('/time.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'time.html'));
+});
+
+app.get('/summary.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'summary.html'));
+});
+
+app.get('/manual.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'manual.html'));
+});
+
+app.get('/database-viewer.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'database-viewer.html'));
 });
 
 // Error handling middleware
@@ -533,13 +569,15 @@ app.use((req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 API available at http://localhost:${PORT}/api`);
-  console.log(`🌐 External access: http://[YOUR-IP]:${PORT}`);
-  console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
-});
+// Start server (only in non-production environment)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📱 API available at http://localhost:${PORT}/api`);
+    console.log(`🌐 External access: http://[YOUR-IP]:${PORT}`);
+    console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
+  });
+}
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
@@ -633,6 +671,9 @@ setInterval(() => {
     forceGarbageCollection();
   }
 }, 30 * 60 * 1000); // Every 30 minutes
+
+// Export app for Vercel
+module.exports = app;
 
 // Export for Vercel
 module.exports = app;
