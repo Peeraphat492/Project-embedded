@@ -307,24 +307,64 @@
     <div class="footer">
       <button class="btn-on" onclick="turnOnLight()">
         <i class="fas fa-power-off"></i>
-        เปิดไฟ
+        เปิดไฟทั้งหมด
       </button>
       <button class="btn-off" onclick="turnOffLight()">
         <i class="fas fa-times-circle"></i>
-        ปิดไฟ
+        ปิดไฟทั้งหมด
       </button>
     </div>
   </div>
 
   <script>
     let lightStatus = false;
+    const serverURL = 'http://172.20.10.2:3000'; // Backend server URL
+    const roomId = 1; // Default room ID
 
-    function turnOnLight() {
-      lightStatus = true;
-      updateUI();
-      
-      // Show success notification
-      showNotification("ไฟถูกเปิดแล้ว! 💡", "success");
+    // Get current LED status from server
+    async function getLEDStatus() {
+      try {
+        const response = await fetch(`${serverURL}/api/arduino/led/${roomId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          // Check if any LED is on - all LEDs work together
+          lightStatus = data.ledStates.led2 || data.ledStates.led3 || data.ledStates.led4;
+          updateUI();
+        }
+      } catch (error) {
+        console.error('Error getting LED status:', error);
+        showNotification("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ ❌", "error");
+      }
+    }
+
+    async function turnOnLight() {
+      try {
+        const response = await fetch(`${serverURL}/api/arduino/led/${roomId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'on'  // Turn on all LEDs together
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          lightStatus = true;
+          updateUI();
+          showNotification("ไฟทั้งหมดถูกเปิดแล้ว! 💡", "success");
+          
+          console.log('All LED States:', data.ledStates);
+        } else {
+          showNotification("เกิดข้อผิดพลาดในการเปิดไฟ ❌", "error");
+        }
+      } catch (error) {
+        console.error('Error turning on lights:', error);
+        showNotification("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ ❌", "error");
+      }
       
       // Add visual feedback
       const btn = event.target;
@@ -334,12 +374,33 @@
       }, 150);
     }
 
-    function turnOffLight() {
-      lightStatus = false;
-      updateUI();
-      
-      // Show success notification
-      showNotification("ไฟถูกปิดแล้ว! 🌙", "info");
+    async function turnOffLight() {
+      try {
+        const response = await fetch(`${serverURL}/api/arduino/led/${roomId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'off'  // Turn off all LEDs together
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          lightStatus = false;
+          updateUI();
+          showNotification("ไฟทั้งหมดถูกปิดแล้ว! 🌙", "info");
+          
+          console.log('All LED States:', data.ledStates);
+        } else {
+          showNotification("เกิดข้อผิดพลาดในการปิดไฟ ❌", "error");
+        }
+      } catch (error) {
+        console.error('Error turning off lights:', error);
+        showNotification("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ ❌", "error");
+      }
       
       // Add visual feedback
       const btn = event.target;
@@ -373,7 +434,9 @@
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)'};
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 
+                     type === 'error' ? 'linear-gradient(135deg, #ef4444, #dc2626)' :
+                     'linear-gradient(135deg, #3b82f6, #1d4ed8)'};
         color: white;
         padding: 15px 20px;
         border-radius: 10px;
@@ -411,9 +474,13 @@
       }, 300);
     }
 
-    // Initialize UI
+    // Initialize UI and get current status
     document.addEventListener('DOMContentLoaded', function() {
       updateUI();
+      getLEDStatus(); // Get initial LED status from server
+      
+      // Periodically check LED status every 5 seconds
+      setInterval(getLEDStatus, 5000);
     });
   </script>
 </body>

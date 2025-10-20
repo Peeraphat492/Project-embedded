@@ -8,6 +8,7 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   />
+  <script src="arduino-controller.js"></script>
   <style>
     * {
       margin: 0;
@@ -527,6 +528,17 @@
       </div>
     </div>
 
+    <!-- Arduino Room Control -->
+    <div class="details">
+      <h3>
+        <i class="fas fa-microchip"></i>
+        Room Control
+      </h3>
+      <div id="arduino-control-container">
+        <!-- Arduino control widget will be inserted here -->
+      </div>
+    </div>
+
     <!-- Footer -->
     <div class="footer">
       <button onclick="editBooking()">
@@ -649,10 +661,57 @@
       if (booking.access_code) {
         document.getElementById("code").textContent = booking.access_code;
       }
+
+      // Initialize Arduino control after displaying booking data
+      initializeArduinoControl(booking);
+    }
+
+    function initializeArduinoControl(booking) {
+      const container = document.getElementById('arduino-control-container');
+      if (!container) return;
+
+      // Extract room ID from the booking data
+      const roomId = booking.room_id || localStorage.getItem('selectedRoomId') || 1;
+      
+      // Create Arduino controller
+      const arduinoController = new ArduinoController();
+      arduinoController.setRoomId(roomId);
+      
+      // Create control widget
+      const widget = arduinoController.createControlWidget(container, {
+        showStatus: true,
+        showUnlock: true,
+        showCheckInOut: true,
+        theme: 'summary'
+      });
+
+      // Pre-fill access code if available
+      if (booking.access_code) {
+        const accessCodeInput = widget.querySelector('#access-code');
+        if (accessCodeInput) {
+          accessCodeInput.value = booking.access_code;
+          accessCodeInput.readOnly = true;
+          accessCodeInput.style.background = '#f0f0f0';
+          accessCodeInput.title = 'Your booking access code';
+        }
+      }
+
+      // Start status polling
+      arduinoController.startStatusPolling(15000); // Check every 15 seconds
+
+      // Store controller reference for cleanup
+      window.arduinoController = arduinoController;
     }
 
     // Initialize page
     window.addEventListener('DOMContentLoaded', loadBookingData);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (window.arduinoController) {
+        window.arduinoController.destroy();
+      }
+    });
   </script>
 </body>
 </html>

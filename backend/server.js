@@ -5,15 +5,77 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const net = require('net');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+let PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
+
+// Function to check if port is available
+function isPortAvailable(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    
+    server.listen(port, () => {
+      server.once('close', () => {
+        resolve(true);
+      });
+      server.close();
+    });
+    
+    server.on('error', () => {
+      resolve(false);
+    });
+  });
+}
+
+// Function to find available port
+async function findAvailablePort(startPort = 3000, maxPort = 3010) {
+  for (let port = startPort; port <= maxPort; port++) {
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  throw new Error(`No available ports found between ${startPort} and ${maxPort}`);
+}
+
+// Function to kill process using port
+function killProcessOnPort(port) {
+  return new Promise((resolve) => {
+    const { exec } = require('child_process');
+    
+    // Windows command to find and kill process
+    exec(`netstat -ano | findstr :${port}`, (error, stdout) => {
+      if (error || !stdout) {
+        resolve(false);
+        return;
+      }
+      
+      const lines = stdout.split('\n');
+      const pidMatch = lines[0].match(/\s+(\d+)\s*$/);
+      
+      if (pidMatch) {
+        const pid = pidMatch[1];
+        exec(`taskkill /PID ${pid} /F`, (killError) => {
+          if (killError) {
+            console.log(`⚠️  Could not kill process ${pid}:`, killError.message);
+            resolve(false);
+          } else {
+            console.log(`✅ Killed process ${pid} using port ${port}`);
+            resolve(true);
+          }
+        });
+      } else {
+        resolve(false);
+      }
+    });
+  });
+}
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://peeraphat492.github.io', 'https://*.vercel.app'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'https://peeraphat492.github.io', 'https://*.vercel.app'],
   credentials: true
 }));
 app.use(express.json());
@@ -26,117 +88,208 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Database initialization - สำหรับ Vercel ใช้ in-memory database
-const dbPath = process.env.NODE_ENV === 'production' ? ':memory:' : './database.db';
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening database:', err);
-  } else {
-    console.log(`Connected to SQLite database: ${dbPath}`);
-    initializeDatabase();
-  }
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📡 ${req.method} ${req.url} from ${req.ip}`);
+  next();
 });
 
-// Initialize database tables
-function initializeDatabase() {
-  // Create tables in sequence to avoid race conditions
-  db.serialize(() => {
-    // Users table
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      email TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+// Database initialization with enhanced error handling
+const dbPath = process.env.NODE_ENV === 'production' ? ':memory:' : path.join(__dirname, 'database.db');
+console.log(`🗃️  Database path: ${dbPath}`);
 
-    // Rooms table
-    db.run(`CREATE TABLE IF NOT EXISTS rooms (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      capacity INTEGER,
-      image_url TEXT,
-      amenities TEXT,
-      status TEXT DEFAULT 'available',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+let db;
+let dbInitialized = false;
 
-    // Bookings table
-    db.run(`CREATE TABLE IF NOT EXISTS bookings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      room_id INTEGER,
-      booking_date DATE NOT NULL,
-      start_time TIME NOT NULL,
-      end_time TIME NOT NULL,
-      access_code TEXT,
-      status TEXT DEFAULT 'active',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id),
-      FOREIGN KEY (room_id) REFERENCES rooms (id)
-    )`);
-
-    // Insert default admin user
-    const defaultPassword = bcrypt.hashSync('1234', 10);
-    db.run(`INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)`, 
-      ['admin', defaultPassword]);
-
-    // Insert default rooms only if table is empty
-    db.get("SELECT COUNT(*) as count FROM rooms", (err, row) => {
+function initializeDBConnection() {
+  return new Promise((resolve, reject) => {
+    db = new sqlite3.Database(dbPath, (err) => {
       if (err) {
-        console.error('Error checking rooms count:', err);
+        console.error('❌ Error opening database:', err);
+        reject(err);
+      } else {
+        console.log(`✅ Connected to SQLite database: ${dbPath}`);
+        
+        // Set database pragmas for better performance and reliability
+        db.serialize(() => {
+          db.run("PRAGMA foreign_keys = ON");
+          db.run("PRAGMA journal_mode = WAL");
+          db.run("PRAGMA synchronous = NORMAL");
+          db.run("PRAGMA cache_size = 10000");
+          db.run("PRAGMA temp_store = memory");
+        });
+        
+        initializeDatabase()
+          .then(() => {
+            dbInitialized = true;
+            resolve(db);
+          })
+          .catch(reject);
+      }
+    });
+  });
+}
+
+// Enhanced database initialization
+function initializeDatabase() {
+  return new Promise((resolve, reject) => {
+    console.log('🔧 Initializing database tables...');
+    
+    db.serialize(() => {
+      // Users table
+      db.run(`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        email TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`, (err) => {
+        if (err) {
+          console.error('❌ Error creating users table:', err);
+          reject(err);
+          return;
+        }
+        console.log('✅ Users table ready');
+      });
+
+      // Rooms table
+      db.run(`CREATE TABLE IF NOT EXISTS rooms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        status TEXT DEFAULT 'available',
+        image_url TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )`, (err) => {
+        if (err) {
+          console.error('❌ Error creating rooms table:', err);
+          reject(err);
+          return;
+        }
+        console.log('✅ Rooms table ready');
+      });
+
+      // Bookings table  
+      db.run(`CREATE TABLE IF NOT EXISTS bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        room_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL,
+        access_code TEXT NOT NULL,
+        status TEXT DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id),
+        FOREIGN KEY (room_id) REFERENCES rooms (id)
+      )`, (err) => {
+        if (err) {
+          console.error('❌ Error creating bookings table:', err);
+          reject(err);
+          return;
+        }
+        console.log('✅ Bookings table ready');
+        
+        // Initialize default data after all tables are created
+        initializeDefaultData()
+          .then(() => {
+            console.log('🎉 Database initialization completed successfully');
+            resolve();
+          })
+          .catch(reject);
+      });
+    });
+  });
+}
+
+// Initialize default data
+function initializeDefaultData() {
+  return new Promise((resolve, reject) => {
+    // Create default admin user
+    const defaultPassword = '1234';
+    bcrypt.hash(defaultPassword, 10, (err, hashedPassword) => {
+      if (err) {
+        console.error('❌ Error hashing password:', err);
+        reject(err);
         return;
       }
-      
+
+      db.get('SELECT COUNT(*) as count FROM users', (err, row) => {
+        if (err) {
+          console.error('❌ Error checking users:', err);
+          reject(err);
+          return;
+        }
+
+        if (row.count === 0) {
+          db.run(`INSERT INTO users (username, password) VALUES (?, ?)`,
+            ['admin', hashedPassword], (err) => {
+            if (err) {
+              console.error('❌ Error creating admin user:', err);
+              reject(err);
+              return;
+            }
+            console.log('✅ Default admin user created (admin/1234)');
+          });
+        }
+      });
+    });
+
+    // Create default rooms
+    const defaultRooms = [
+      { 
+        name: 'Game Room', 
+        image_url: 'https://via.placeholder.com/300x200/4CAF50/white?text=Game+Room'
+      },
+      { 
+        name: 'Meeting Room1', 
+        image_url: 'https://via.placeholder.com/300x200/2196F3/white?text=Meeting+Room+1'
+      },
+      { 
+        name: 'Meeting Room2', 
+        image_url: 'https://via.placeholder.com/300x200/FF9800/white?text=Meeting+Room+2'
+      },
+      { 
+        name: 'Cooking Room', 
+        image_url: 'https://via.placeholder.com/300x200/E91E63/white?text=Cooking+Room'
+      },
+      { 
+        name: 'Facial Sauna Room', 
+        image_url: 'https://via.placeholder.com/300x200/9C27B0/white?text=Sauna+Room'
+      },
+      { 
+        name: 'Karaoke Room', 
+        image_url: 'https://via.placeholder.com/300x200/FF5722/white?text=Karaoke+Room'
+      }
+    ];
+
+    db.get('SELECT COUNT(*) as count FROM rooms', (err, row) => {
+      if (err) {
+        console.error('❌ Error checking rooms:', err);
+        reject(err);
+        return;
+      }
+
       if (row.count === 0) {
-        const defaultRooms = [
-          {
-            name: 'Meeting Room1',
-            description: 'ห้องประชุมขนาดกลาง เหมาะสำหรับการประชุมทีม',
-            capacity: 8,
-            image_url: 'https://www.homenayoo.com/wp-content/uploads/2018/03/1091.jpg'
-          },
-          {
-            name: 'Meeting Room2', 
-            description: 'ห้องประชุมขนาดใหญ่ พร้อมอุปกรณ์การนำเสนอ',
-            capacity: 12,
-            image_url: 'https://cdn.ananda.co.th/blog/thegenc/wp-content/uploads/2023/09/Meeting-01-825x550.jpg'
-          },
-          {
-            name: 'Cooking Room',
-            description: 'ห้องครัวสำหรับทำอาหารและกิจกรรมการปรุงอาหาร',
-            capacity: 6,
-            image_url: 'https://img.home.co.th/Images/img_v/BuyHome/20200525-114901-Co-Kitchen-FB-00.jpg'
-          },
-          {
-            name: 'Karaoke Room',
-            description: 'ห้องคาราโอเกะพร้อมระบบเสียงคุณภาพสูง',
-            capacity: 10,
-            image_url: 'https://www.centarahotelsresorts.com/centara/sites/centara-centara/files/styles/822x800/public/2022-05/Karaoke-Room.jpg.JPG?itok=6JeEfR9-'
-          },
-          {
-            name: 'Game Room',
-            description: 'ห้องเกมส์พร้อมเครื่องเกมคอนโซลและเกมต่างๆ',
-            capacity: 8,
-            image_url: 'https://prop2morrow.com/wp-content/uploads/2021/12/2021-12-10_17-14-58-assetwise.jpg'
-          },
-          {
-            name: 'Facial Sauna Room',
-            description: 'ห้องซาวน่าสำหรับผ่อนคลายและดูแลผิวหน้า',
-            capacity: 4,
-            image_url: 'https://iauna.net/wp-content/uploads/2021/05/cs.01.png'
-          }
-        ];
-
-        defaultRooms.forEach(room => {
-          db.run(`INSERT INTO rooms (name, description, capacity, image_url) VALUES (?, ?, ?, ?)`,
-            [room.name, room.description, room.capacity, room.image_url]);
+        let insertedCount = 0;
+        defaultRooms.forEach((room) => {
+          db.run(`INSERT INTO rooms (name, image_url) VALUES (?, ?)`,
+            [room.name, room.image_url], (err) => {
+            if (err) {
+              console.error('❌ Error inserting room:', err);
+              reject(err);
+              return;
+            }
+            
+            insertedCount++;
+            if (insertedCount === defaultRooms.length) {
+              console.log('✅ Default rooms inserted successfully');
+              resolve();
+            }
+          });
         });
-
-        console.log('✅ Default rooms inserted successfully');
       } else {
         console.log(`📊 Found ${row.count} existing rooms in database`);
+        resolve();
       }
     });
   });
@@ -161,6 +314,66 @@ function authenticateToken(req, res, next) {
 }
 
 // API Routes
+
+// Health check
+app.get('/api/health', (req, res) => {
+  console.log('🏥 Health check requested from:', req.ip);
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    database: dbInitialized ? 'Connected' : 'Not Ready',
+    port: PORT
+  });
+});
+
+// Admin endpoints
+app.delete('/api/admin/clear-bookings', (req, res) => {
+  console.log('🗑️ Admin: Clear all bookings requested from:', req.ip);
+  
+  db.run('DELETE FROM bookings', [], function(err) {
+    if (err) {
+      console.error('❌ Error clearing bookings:', err);
+      return res.status(500).json({ error: 'Failed to clear bookings' });
+    }
+    
+    console.log(`✅ Cleared ${this.changes} bookings`);
+    res.json({ 
+      success: true, 
+      message: `Successfully cleared ${this.changes} bookings`,
+      deletedCount: this.changes
+    });
+  });
+});
+
+app.delete('/api/admin/reset-database', (req, res) => {
+  console.log('🔄 Admin: Reset database requested from:', req.ip);
+  
+  // Clear all tables
+  const tables = ['bookings', 'users'];
+  let completed = 0;
+  let totalDeleted = 0;
+  
+  tables.forEach(table => {
+    db.run(`DELETE FROM ${table}`, [], function(err) {
+      if (err) {
+        console.error(`❌ Error clearing ${table}:`, err);
+        return res.status(500).json({ error: `Failed to clear ${table}` });
+      }
+      
+      totalDeleted += this.changes;
+      completed++;
+      
+      if (completed === tables.length) {
+        console.log(`✅ Database reset complete. Deleted ${totalDeleted} records`);
+        res.json({ 
+          success: true, 
+          message: `Database reset successfully. Deleted ${totalDeleted} records`,
+          deletedCount: totalDeleted
+        });
+      }
+    });
+  });
+});
 
 // Authentication endpoints
 app.post('/api/auth/login', async (req, res) => {
@@ -200,408 +413,448 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Get all rooms
+// Rooms endpoints
 app.get('/api/rooms', (req, res) => {
-  db.all('SELECT * FROM rooms WHERE status = ?', ['available'], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-    res.json(rows);
-  });
-});
-
-// Get room by ID
-app.get('/api/rooms/:id', (req, res) => {
-  const roomId = req.params.id;
-  db.get('SELECT * FROM rooms WHERE id = ?', [roomId], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-    if (!row) {
-      return res.status(404).json({ error: 'Room not found' });
-    }
-    res.json(row);
-  });
-});
-
-// Get available time slots for a room
-app.get('/api/rooms/:id/availability/:date', (req, res) => {
-  const { id, date } = req.params;
+  console.log('📝 API Request: GET /api/rooms');
   
-  // Get all bookings for the room on the specified date
-  db.all(
-    'SELECT start_time, end_time FROM bookings WHERE room_id = ? AND booking_date = ? AND status = ?',
-    [id, date, 'active'],
-    (err, bookings) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      // Define all possible time slots
-      const allTimeSlots = [
-        { start: '08:00', end: '09:00' },
-        { start: '09:00', end: '10:00' },
-        { start: '10:00', end: '11:00' },
-        { start: '11:00', end: '12:00' },
-        { start: '12:00', end: '13:00' },
-        { start: '13:00', end: '14:00' },
-        { start: '14:00', end: '15:00' },
-        { start: '15:00', end: '16:00' },
-        { start: '16:00', end: '17:00' },
-        { start: '17:00', end: '18:00' },
-        { start: '18:00', end: '19:00' },
-        { start: '19:00', end: '20:00' },
-        { start: '20:00', end: '21:00' },
-        { start: '21:00', end: '22:00' },
-        { start: '22:00', end: '23:00' },
-        { start: '23:00', end: '00:00' }
-      ];
-
-      // Filter out booked time slots
-      const availableSlots = allTimeSlots.filter(slot => {
-        return !bookings.some(booking => 
-          booking.start_time === slot.start && booking.end_time === slot.end
-        );
-      });
-
-      res.json(availableSlots);
+  db.all('SELECT * FROM rooms ORDER BY id', (err, rooms) => {
+    if (err) {
+      console.error('❌ Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
     }
-  );
+    
+    console.log(`✅ Found ${rooms.length} rooms`);
+    res.json(rooms);
+  });
 });
 
-// Create a new booking
+// Bookings endpoints
+app.get('/api/bookings/all', (req, res) => {
+  console.log('📝 API Request: GET /api/bookings/all');
+  
+  db.all(`SELECT b.*, r.name as room_name, u.username 
+          FROM bookings b 
+          LEFT JOIN rooms r ON b.room_id = r.id 
+          LEFT JOIN users u ON b.user_id = u.id 
+          ORDER BY b.created_at DESC`, (err, bookings) => {
+    if (err) {
+      console.error('❌ Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    console.log(`✅ Found ${bookings.length} bookings`);
+    res.json(bookings);
+  });
+});
+
 app.post('/api/bookings', authenticateToken, (req, res) => {
-  const { room_id, booking_date, start_time, end_time } = req.body;
+  console.log('📝 API Request: POST /api/bookings');
+  console.log('📋 Request body:', req.body);
+  
+  const { room_id, date, start_time, end_time } = req.body;
   const user_id = req.user.id;
-
-  if (!room_id || !booking_date || !start_time || !end_time) {
-    return res.status(400).json({ error: 'All booking details required' });
+  
+  if (!room_id || !date || !start_time || !end_time) {
+    return res.status(400).json({ error: 'Missing required fields' });
   }
-
-  // Generate 6-digit access code
+  
+  // Generate access code
   const access_code = Math.floor(100000 + Math.random() * 900000).toString();
-
-  // Check if the time slot is available
-  db.get(
-    'SELECT id FROM bookings WHERE room_id = ? AND booking_date = ? AND start_time = ? AND end_time = ? AND status = ?',
-    [room_id, booking_date, start_time, end_time, 'active'],
-    (err, existingBooking) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-
-      if (existingBooking) {
-        return res.status(409).json({ error: 'Time slot already booked' });
-      }
-
-      // Create the booking
-      db.run(
-        'INSERT INTO bookings (user_id, room_id, booking_date, start_time, end_time, access_code) VALUES (?, ?, ?, ?, ?, ?)',
-        [user_id, room_id, booking_date, start_time, end_time, access_code],
-        function(err) {
-          if (err) {
-            return res.status(500).json({ error: 'Failed to create booking' });
-          }
-
-          // Get the complete booking info with room details
-          db.get(
-            `SELECT b.*, r.name as room_name, r.image_url as room_image, u.username 
-             FROM bookings b
-             JOIN rooms r ON b.room_id = r.id
-             JOIN users u ON b.user_id = u.id
-             WHERE b.id = ?`,
-            [this.lastID],
-            (err, booking) => {
-              if (err) {
-                return res.status(500).json({ error: 'Database error' });
-              }
-
-              res.status(201).json({
-                success: true,
-                booking: booking
-              });
-            }
-          );
-        }
-      );
-    }
-  );
-});
-
-// Get user's bookings
-app.get('/api/bookings/my', authenticateToken, (req, res) => {
-  const user_id = req.user.id;
-
-  db.all(
-    `SELECT b.*, r.name as room_name, r.image_url as room_image
-     FROM bookings b
-     JOIN rooms r ON b.room_id = r.id
-     WHERE b.user_id = ? AND b.status = ?
-     ORDER BY b.booking_date DESC, b.start_time DESC`,
-    [user_id, 'active'],
-    (err, bookings) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-      res.json(bookings);
-    }
-  );
-});
-
-// Cancel a booking
-app.delete('/api/bookings/:id', authenticateToken, (req, res) => {
-  const bookingId = req.params.id;
-  const user_id = req.user.id;
-
-  db.run(
-    'UPDATE bookings SET status = ? WHERE id = ? AND user_id = ?',
-    ['cancelled', bookingId, user_id],
+  
+  db.run(`INSERT INTO bookings (user_id, room_id, booking_date, start_time, end_time, access_code) 
+          VALUES (?, ?, ?, ?, ?, ?)`,
+    [user_id, room_id, date, start_time, end_time, access_code],
     function(err) {
       if (err) {
+        console.error('❌ Database error:', err);
         return res.status(500).json({ error: 'Database error' });
       }
-
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Booking not found or unauthorized' });
-      }
-
-      res.json({ success: true, message: 'Booking cancelled successfully' });
+      
+      // Get the complete booking info
+      db.get(`SELECT b.*, r.name as room_name, u.username 
+              FROM bookings b 
+              LEFT JOIN rooms r ON b.room_id = r.id 
+              LEFT JOIN users u ON b.user_id = u.id 
+              WHERE b.id = ?`, [this.lastID], (err, booking) => {
+        if (err) {
+          console.error('❌ Error fetching booking:', err);
+          return res.status(500).json({ error: 'Database error' });
+        }
+        
+        console.log('✅ Booking created successfully:', booking);
+        res.status(201).json(booking);
+      });
     }
   );
 });
 
-// Get all bookings (admin/debug endpoint)
-app.get('/api/bookings/all', (req, res) => {
-  db.all(
-    `SELECT 
-      b.id,
-      b.room_id,
-      r.name as room_name,
-      b.user_id,
-      u.username as user_name,
-      b.booking_date,
-      b.start_time,
-      b.end_time,
-      b.access_code,
-      b.status,
-      b.created_at
-    FROM bookings b
-    LEFT JOIN rooms r ON b.room_id = r.id
-    LEFT JOIN users u ON b.user_id = u.id
-    ORDER BY b.created_at DESC`,
-    (err, bookings) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-      res.json(bookings);
+// Room Availability API
+app.get('/api/rooms/:roomId/availability/:date', (req, res) => {
+  console.log('📅 Room Availability Request:', req.params);
+  
+  const { roomId, date } = req.params;
+  
+  // Get all bookings for this room on this date
+  db.all(`
+    SELECT start_time, end_time, status
+    FROM bookings 
+    WHERE room_id = ? AND booking_date = ? AND status = 'active'
+    ORDER BY start_time
+  `, [roomId, date], (err, bookings) => {
+    if (err) {
+      console.error('❌ Availability Error:', err);
+      return res.status(500).json({ error: 'Database error' });
     }
-  );
-});
-
-// Get all users (admin/debug endpoint)
-app.get('/api/users/all', (req, res) => {
-  db.all(
-    `SELECT 
-      id,
-      username,
-      email,
-      'user' as role,
-      created_at
-    FROM users
-    ORDER BY created_at DESC`,
-    (err, users) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-      res.json(users);
+    
+    // Generate all possible time slots (24 hours)
+    const allSlots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      const startTime = hour.toString().padStart(2, '0') + ':00';
+      const endTime = ((hour + 1) % 24).toString().padStart(2, '0') + ':00';
+      allSlots.push({ start: startTime, end: endTime });
     }
-  );
-});
-
-// IoT device endpoints (for ESP32 integration)
-app.get('/api/device/settings', (req, res) => {
-  // Return current time control settings
-  const now = new Date();
-  res.json({
-    currentTime: now.toTimeString().slice(0, 8),
-    wakeTime: "09:00",
-    stopTime: "11:00",
-    relaystatus: false
+    
+    // Filter out booked slots
+    const availableSlots = allSlots.filter(slot => {
+      return !bookings.some(booking => 
+        slot.start >= booking.start_time && slot.start < booking.end_time
+      );
+    });
+    
+    console.log('✅ Available slots:', availableSlots.length, 'out of', allSlots.length);
+    res.json(availableSlots);
   });
 });
 
-app.post('/api/device/control', (req, res) => {
-  const { action, timeRange } = req.body;
+// Arduino Integration API
+app.get('/api/arduino/status/:roomId', (req, res) => {
+  console.log('📱 Arduino Status Request:', req.params.roomId);
   
-  // Handle device control commands
-  console.log(`Device control: ${action}, Time: ${timeRange}`);
+  const roomId = req.params.roomId;
+  
+  // Check current booking status for the room
+  db.get(`
+    SELECT b.*, r.name as room_name, r.status as room_status
+    FROM bookings b
+    LEFT JOIN rooms r ON b.room_id = r.id
+    WHERE b.room_id = ? AND b.status = 'active'
+    AND b.booking_date = date('now', 'localtime')
+    AND time('now', 'localtime') BETWEEN b.start_time AND b.end_time
+    ORDER BY b.created_at DESC
+    LIMIT 1
+  `, [roomId], (err, booking) => {
+    if (err) {
+      console.error('❌ Arduino Status Error:', err);
+      return res.status(500).json({ 
+        error: 'Database error',
+        isBooked: false,
+        roomStatus: 'available'
+      });
+    }
+    
+    const response = {
+      roomId: parseInt(roomId),
+      isBooked: booking ? true : false,
+      roomStatus: booking ? 'occupied' : 'available',
+      currentBooking: booking ? {
+        bookingId: booking.id,
+        userId: booking.user_id,
+        startTime: booking.start_time,
+        endTime: booking.end_time,
+        accessCode: booking.access_code
+      } : null,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('✅ Arduino Status Response:', response);
+    res.json(response);
+  });
+});
+
+app.post('/api/arduino/unlock/:roomId', (req, res) => {
+  console.log('🔓 Arduino Unlock Request:', req.params.roomId, req.body);
+  
+  const roomId = req.params.roomId;
+  const { access_code, accessCode, userId } = req.body;
+  
+  // Support both access_code (Arduino) and accessCode (web) formats
+  const finalAccessCode = access_code || accessCode;
+  
+  console.log(`🔍 Using access code: ${finalAccessCode}`);
+  
+  // Verify access code and current booking
+  db.get(`
+    SELECT b.*, r.name as room_name
+    FROM bookings b
+    LEFT JOIN rooms r ON b.room_id = r.id
+    WHERE b.room_id = ? AND b.access_code = ? AND b.status = 'active'
+    AND b.booking_date = date('now', 'localtime')
+    AND time('now', 'localtime') BETWEEN b.start_time AND b.end_time
+  `, [roomId, finalAccessCode], (err, booking) => {
+    if (err) {
+      console.error('❌ Arduino Unlock Error:', err);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Database error',
+        unlocked: false
+      });
+    }
+    
+    if (!booking) {
+      console.log('❌ Invalid access code or no active booking');
+      return res.status(403).json({ 
+        success: false,
+        error: 'Invalid access code or no active booking',
+        unlocked: false
+      });
+    }
+    
+    // Log successful unlock
+    const unlockLog = {
+      roomId: parseInt(roomId),
+      bookingId: booking.id,
+      userId: booking.user_id,
+      accessCode: finalAccessCode,
+      unlockTime: new Date().toISOString(),
+      roomName: booking.room_name
+    };
+    
+    console.log('✅ Arduino Unlock Success:', unlockLog);
+    
+    // Update room status to occupied
+    db.run('UPDATE rooms SET status = ? WHERE id = ?', ['occupied', roomId], (err) => {
+      if (err) {
+        console.error('❌ Error updating room status:', err);
+      }
+    });
+    
+    res.json({
+      success: true,
+      unlocked: true,
+      booking: {
+        id: booking.id,
+        roomName: booking.room_name,
+        startTime: booking.start_time,
+        endTime: booking.end_time,
+        userId: booking.user_id
+      },
+      unlockTime: unlockLog.unlockTime,
+      message: `Room ${booking.room_name} unlocked successfully`
+    });
+  });
+});
+
+app.post('/api/arduino/checkin/:roomId', (req, res) => {
+  console.log('📍 Arduino Check-in Request:', req.params.roomId);
+  
+  const roomId = req.params.roomId;
+  
+  // Update room status to occupied
+  db.run('UPDATE rooms SET status = ? WHERE id = ?', ['occupied', roomId], (err) => {
+    if (err) {
+      console.error('❌ Arduino Check-in Error:', err);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Database error'
+      });
+    }
+    
+    console.log(`✅ Room ${roomId} checked in successfully`);
+    res.json({
+      success: true,
+      roomId: parseInt(roomId),
+      status: 'occupied',
+      checkinTime: new Date().toISOString(),
+      message: 'Check-in successful'
+    });
+  });
+});
+
+app.post('/api/arduino/checkout/:roomId', (req, res) => {
+  console.log('📤 Arduino Check-out Request:', req.params.roomId);
+  
+  const roomId = req.params.roomId;
+  
+  // Update room status to available
+  db.run('UPDATE rooms SET status = ? WHERE id = ?', ['available', roomId], (err) => {
+    if (err) {
+      console.error('❌ Arduino Check-out Error:', err);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Database error'
+      });
+    }
+    
+    console.log(`✅ Room ${roomId} checked out successfully`);
+    res.json({
+      success: true,
+      roomId: parseInt(roomId),
+      status: 'available',
+      checkoutTime: new Date().toISOString(),
+      message: 'Check-out successful'
+    });
+  });
+});
+
+// Manual LED Control Endpoints - All LEDs together
+app.post('/api/arduino/led/:roomId', (req, res) => {
+  console.log('💡 Manual LED Control Request:', req.params.roomId, req.body);
+  
+  const roomId = req.params.roomId;
+  const { action } = req.body; // action can be 'on', 'off', or 'toggle'
+  
+  // Validate input
+  if (!roomId) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Room ID is required'
+    });
+  }
+  
+  // Store LED states (in a real application, you might want to store this in database)
+  global.manualLEDStates = global.manualLEDStates || {};
+  global.manualLEDStates[roomId] = global.manualLEDStates[roomId] || { led2: false, led3: false, led4: false };
+  
+  // Apply changes based on action - ALL LEDs together
+  if (action === 'on') {
+    global.manualLEDStates[roomId].led2 = true;
+    global.manualLEDStates[roomId].led3 = true;
+    global.manualLEDStates[roomId].led4 = true;
+  } else if (action === 'off') {
+    global.manualLEDStates[roomId].led2 = false;
+    global.manualLEDStates[roomId].led3 = false;
+    global.manualLEDStates[roomId].led4 = false;
+  } else if (action === 'toggle') {
+    // Toggle all LEDs together
+    const currentState = global.manualLEDStates[roomId].led2 || global.manualLEDStates[roomId].led3 || global.manualLEDStates[roomId].led4;
+    const newState = !currentState;
+    global.manualLEDStates[roomId].led2 = newState;
+    global.manualLEDStates[roomId].led3 = newState;
+    global.manualLEDStates[roomId].led4 = newState;
+  }
+  
+  console.log(`💡 LED States for Room ${roomId}:`, global.manualLEDStates[roomId]);
   
   res.json({
     success: true,
-    message: `Device ${action} command executed`,
+    roomId: parseInt(roomId),
+    ledStates: global.manualLEDStates[roomId],
+    timestamp: new Date().toISOString(),
+    message: 'Manual LED control updated - All LEDs together'
+  });
+});
+
+app.get('/api/arduino/led/:roomId', (req, res) => {
+  console.log('💡 Get LED Status Request:', req.params.roomId);
+  
+  const roomId = req.params.roomId;
+  
+  // Initialize if not exists
+  global.manualLEDStates = global.manualLEDStates || {};
+  global.manualLEDStates[roomId] = global.manualLEDStates[roomId] || { led2: false, led3: false, led4: false };
+  
+  res.json({
+    success: true,
+    roomId: parseInt(roomId),
+    ledStates: global.manualLEDStates[roomId],
     timestamp: new Date().toISOString()
   });
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    database: 'Connected'
-  });
-});
-
-// Get all bookings (Admin only)
-app.get('/api/admin/bookings', (req, res) => {
-  db.all(
-    `SELECT b.*, r.name as room_name, u.username
-     FROM bookings b
-     LEFT JOIN rooms r ON b.room_id = r.id
-     LEFT JOIN users u ON b.user_id = u.id
-     ORDER BY b.created_at DESC`,
-    [],
-    (err, bookings) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
-      res.json(bookings);
-    }
-  );
-});
-
-// Clear all bookings (Admin only)
-app.delete('/api/admin/clear-bookings', (req, res) => {
-  db.run('DELETE FROM bookings', [], function(err) {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to clear bookings' });
-    }
-    res.json({ 
-      success: true, 
-      message: `Cleared ${this.changes} bookings`,
-      timestamp: new Date().toISOString()
-    });
-  });
-});
-
-// Reset database to initial state (Admin only)
-app.post('/api/admin/reset-database', (req, res) => {
-  // Clear all user data but keep admin
-  db.serialize(() => {
-    db.run('DELETE FROM bookings');
-    db.run('DELETE FROM users WHERE username != ?', ['admin']);
-    
-    res.json({
-      success: true,
-      message: 'Database reset to initial state',
-      timestamp: new Date().toISOString()
-    });
-  });
-});
-
-// Get database statistics
-app.get('/api/admin/stats', (req, res) => {
-  const stats = {};
-  
-  db.get('SELECT COUNT(*) as count FROM users', (err, result) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    stats.users = result.count;
-    
-    db.get('SELECT COUNT(*) as count FROM rooms', (err, result) => {
-      if (err) return res.status(500).json({ error: 'Database error' });
-      stats.rooms = result.count;
-      
-      db.get('SELECT COUNT(*) as count FROM bookings', (err, result) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
-        stats.bookings = result.count;
-        stats.timestamp = new Date().toISOString();
-        
-        res.json(stats);
-      });
-    });
-  });
-});
-
-// Default route - serve index.html or redirect to login
-app.get('/', (req, res) => {
-  if (process.env.NODE_ENV === 'production') {
-    // In production (Vercel), serve static content
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
-  } else {
-    // In development, redirect to login
-    res.redirect('/login.html');
-  }
-});
-
-// Serve static HTML files for Vercel
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-app.get('/rooms.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'rooms.html'));
-});
-
-app.get('/time.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'time.html'));
-});
-
-app.get('/summary.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'summary.html'));
-});
-
-app.get('/manual.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'manual.html'));
-});
-
-app.get('/database-viewer.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'database-viewer.html'));
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
-
-// 404 handler (must be last)
-app.use((req, res) => {
+// Catch-all for undefined API routes
+app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// Start server (only in non-production environment)
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📱 API available at http://localhost:${PORT}/api`);
-    console.log(`🌐 External access: http://[YOUR-IP]:${PORT}`);
-    console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
-  });
+// Enhanced server startup with port management
+async function startServer() {
+  try {
+    console.log('🔍 Checking server startup...');
+    
+    // Initialize database first
+    await initializeDBConnection();
+    
+    // Check if port is available
+    const isAvailable = await isPortAvailable(PORT);
+    
+    if (!isAvailable) {
+      console.log(`⚠️  Port ${PORT} is in use, attempting to free it...`);
+      const killed = await killProcessOnPort(PORT);
+      
+      if (killed) {
+        // Wait a moment for port to be freed
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        // Find alternative port
+        console.log(`🔍 Finding alternative port...`);
+        const availablePort = await findAvailablePort(3001, 3010);
+        console.log(`✅ Using alternative port: ${availablePort}`);
+        PORT = availablePort;
+      }
+    }
+    
+    // Start server
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📱 API available at http://localhost:${PORT}/api`);
+      console.log(`🌐 External access: http://[YOUR-IP]:${PORT}`);
+      console.log(`❤️  Health check: http://localhost:${PORT}/api/health`);
+    });
+    
+    // Handle server errors
+    server.on('error', async (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`❌ Port ${PORT} still in use, trying alternative...`);
+        try {
+          const newPort = await findAvailablePort(PORT + 1, PORT + 10);
+          console.log(`🔄 Retrying with port ${newPort}...`);
+          PORT = newPort;
+          setTimeout(() => startServer(), 1000);
+        } catch (error) {
+          console.error('💥 Could not find available port:', error.message);
+          process.exit(1);
+        }
+      } else {
+        console.error('💥 Server error:', err);
+        process.exit(1);
+      }
+    });
+    
+    return server;
+    
+  } catch (error) {
+    console.error('💥 Failed to start server:', error.message);
+    process.exit(1);
+  }
 }
 
-// Handle uncaught exceptions
+// Enhanced error handling
 process.on('uncaughtException', (err) => {
   console.error('🚨 Uncaught Exception:', err);
-  // Don't exit the process, just log the error
+  
+  // Log error details but don't crash
+  if (err.code === 'EADDRINUSE') {
+    console.log('🔄 Port conflict detected, server will attempt restart...');
+    return;
+  }
+  
+  // For other critical errors, graceful shutdown
+  console.log('💥 Critical error detected, initiating graceful shutdown...');
+  gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
 
-// Handle unhandled promise rejections  
+// Enhanced promise rejection handling  
 process.on('unhandledRejection', (reason, promise) => {
   console.error('🚨 Unhandled Rejection at:', promise, 'reason:', reason);
-  // Don't exit the process, just log the error
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n🛑 Shutting down server...');
-  db.close((err) => {
-    if (err) {
-      console.error('Error closing database:', err);
-    } else {
-      console.log('Database connection closed.');
-    }
-    process.exit(0);
-  });
+  
+  // Don't crash on unhandled rejections, just log them
+  if (reason && reason.code === 'EADDRINUSE') {
+    console.log('🔄 Promise rejection due to port conflict, handled by server startup logic');
+    return;
+  }
+  
+  // Log but continue running for non-critical rejections
+  console.log('⚠️  Continuing server operation...');
 });
 
 // Memory management
@@ -618,7 +871,7 @@ function checkMemoryUsage() {
   const heapUsedMB = Math.round(usage.heapUsed / 1024 / 1024);
   const heapTotalMB = Math.round(usage.heapTotal / 1024 / 1024);
   
-  console.log(`� [${new Date().toLocaleTimeString()}] Memory: ${heapUsedMB}MB / ${heapTotalMB}MB`);
+  console.log(`💾 [${new Date().toLocaleTimeString()}] Memory: ${heapUsedMB}MB / ${heapTotalMB}MB`);
   
   // Force GC if memory usage is high (>100MB)
   if (heapUsedMB > 100) {
@@ -637,16 +890,21 @@ function gracefulShutdown(signal) {
   console.log(`\n🛑 ${signal} received, shutting down gracefully...`);
   
   // Close database connection
-  db.close((err) => {
-    if (err) {
-      console.error('❌ Error closing database:', err);
-    } else {
-      console.log('✅ Database connection closed');
-    }
-    
-    console.log('� Server shutdown complete');
+  if (db) {
+    db.close((err) => {
+      if (err) {
+        console.error('❌ Error closing database:', err);
+      } else {
+        console.log('✅ Database connection closed');
+      }
+      
+      console.log('🏁 Server shutdown complete');
+      process.exit(0);
+    });
+  } else {
+    console.log('🏁 Server shutdown complete');
     process.exit(0);
-  });
+  }
   
   // Force exit after 10 seconds if graceful shutdown fails
   setTimeout(() => {
@@ -657,6 +915,7 @@ function gracefulShutdown(signal) {
 
 // Handle shutdown signals
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Health monitoring and memory cleanup
 setInterval(() => {
@@ -670,10 +929,11 @@ setInterval(() => {
   if (!isShuttingDown) {
     forceGarbageCollection();
   }
-}, 30 * 60 * 1000); // Every 30 minutes
+}, 10 * 60 * 1000); // Every 10 minutes
 
-// Export app for Vercel
-module.exports = app;
+// Start server only in non-production environment
+if (process.env.NODE_ENV !== 'production') {
+  startServer();
+}
 
-// Export for Vercel
 module.exports = app;

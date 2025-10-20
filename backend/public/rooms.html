@@ -8,6 +8,7 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   />
+  <script src="arduino-controller.js"></script>
   <style>
     * {
       margin: 0;
@@ -358,6 +359,43 @@
       100% { transform: rotate(360deg); }
     }
 
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Arduino Status Styles */
+    .arduino-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .arduino-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .arduino-online {
+      background: #4CAF50;
+    }
+
+    .arduino-offline {
+      background: #FF5722;
+    }
+
+    .arduino-unknown {
+      background: #FFC107;
+    }
+
     /* Responsive Design */
     @media (max-width: 480px) {
       .container {
@@ -524,8 +562,69 @@
             <i class="fas fa-check"></i>
           </div>
           <p>${room.name}</p>
+          <div class="arduino-status" id="arduino-status-${room.id}">
+            <div class="arduino-indicator arduino-unknown"></div>
+            <span>Arduino: Checking...</span>
+          </div>
         </div>
       `).join('');
+
+      // Initialize Arduino controllers for each room
+      initializeArduinoStatus();
+    }
+
+    // Arduino status management
+    let arduinoControllers = {};
+
+    function initializeArduinoStatus() {
+      const rooms = JSON.parse(localStorage.getItem('rooms')) || [];
+      
+      rooms.forEach(room => {
+        const controller = new ArduinoController();
+        controller.setRoomId(room.id);
+        
+        // Update status display
+        controller.onStatusUpdate((status) => {
+          updateArduinoStatusDisplay(room.id, status);
+        });
+        
+        controller.onError((error) => {
+          updateArduinoStatusDisplay(room.id, { 
+            isBooked: false, 
+            roomStatus: 'offline',
+            error: error.message 
+          });
+        });
+        
+        // Get initial status
+        controller.getRoomStatus().catch(() => {
+          updateArduinoStatusDisplay(room.id, { 
+            isBooked: false, 
+            roomStatus: 'offline' 
+          });
+        });
+        
+        arduinoControllers[room.id] = controller;
+      });
+    }
+
+    function updateArduinoStatusDisplay(roomId, status) {
+      const statusElement = document.getElementById(`arduino-status-${roomId}`);
+      if (!statusElement) return;
+      
+      const indicator = statusElement.querySelector('.arduino-indicator');
+      const text = statusElement.querySelector('span');
+      
+      if (status.error || status.roomStatus === 'offline') {
+        indicator.className = 'arduino-indicator arduino-offline';
+        text.textContent = 'Arduino: Offline';
+      } else if (status.roomStatus === 'occupied') {
+        indicator.className = 'arduino-indicator arduino-online';
+        text.textContent = 'Arduino: Occupied';
+      } else {
+        indicator.className = 'arduino-indicator arduino-online';
+        text.textContent = 'Arduino: Available';
+      }
     }
 
     function selectRoom(card, roomId) {

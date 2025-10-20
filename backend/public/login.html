@@ -426,6 +426,7 @@
  
   <script>
     const API_BASE_URL = (() => {
+      // Always use localhost:3000 for API in development
       if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
         return "http://localhost:3000/api";
       }
