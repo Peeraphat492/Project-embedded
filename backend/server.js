@@ -8,6 +8,9 @@ const path = require('path');
 const net = require('net');
 require('dotenv').config();
 
+// Set timezone to Thailand (UTC+7)
+process.env.TZ = 'Asia/Bangkok';
+
 const app = express();
 let PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
@@ -81,10 +84,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rate limiting
+// Rate limiting - Increased for Arduino devices
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 300 // limit each IP to 300 requests per windowMs (increased for multiple Arduino)
 });
 app.use('/api/', limiter);
 
@@ -533,16 +536,22 @@ app.get('/api/arduino/status/:roomId', (req, res) => {
   const roomId = req.params.roomId;
   
   // Check current booking status for the room
+  const now = new Date();
+  const currentDate = now.toLocaleDateString('sv-SE'); // YYYY-MM-DD format
+  const currentTime = now.toLocaleTimeString('en-GB', { hour12: false }).slice(0, 5); // HH:MM format
+  
+  console.log(`🕐 Current Bangkok Time: ${currentDate} ${currentTime}`);
+  
   db.get(`
     SELECT b.*, r.name as room_name, r.status as room_status
     FROM bookings b
     LEFT JOIN rooms r ON b.room_id = r.id
     WHERE b.room_id = ? AND b.status = 'active'
-    AND b.booking_date = date('now', 'localtime')
-    AND time('now', 'localtime') BETWEEN b.start_time AND b.end_time
+    AND b.booking_date = ?
+    AND ? BETWEEN b.start_time AND b.end_time
     ORDER BY b.created_at DESC
     LIMIT 1
-  `, [roomId], (err, booking) => {
+  `, [roomId, currentDate, currentTime], (err, booking) => {
     if (err) {
       console.error('❌ Arduino Status Error:', err);
       return res.status(500).json({ 
@@ -582,15 +591,22 @@ app.post('/api/arduino/unlock/:roomId', (req, res) => {
   
   console.log(`🔍 Using access code: ${finalAccessCode}`);
   
+  // Use JavaScript time instead of SQLite localtime
+  const now = new Date();
+  const currentDate = now.toLocaleDateString('sv-SE'); // YYYY-MM-DD format
+  const currentTime = now.toLocaleTimeString('en-GB', { hour12: false }).slice(0, 5); // HH:MM format
+  
+  console.log(`🕐 Current Bangkok Time: ${currentDate} ${currentTime}`);
+  
   // Verify access code and current booking
   db.get(`
     SELECT b.*, r.name as room_name
     FROM bookings b
     LEFT JOIN rooms r ON b.room_id = r.id
     WHERE b.room_id = ? AND b.access_code = ? AND b.status = 'active'
-    AND b.booking_date = date('now', 'localtime')
-    AND time('now', 'localtime') BETWEEN b.start_time AND b.end_time
-  `, [roomId, finalAccessCode], (err, booking) => {
+    AND b.booking_date = ?
+    AND ? BETWEEN b.start_time AND b.end_time
+  `, [roomId, finalAccessCode, currentDate, currentTime], (err, booking) => {
     if (err) {
       console.error('❌ Arduino Unlock Error:', err);
       return res.status(500).json({ 
